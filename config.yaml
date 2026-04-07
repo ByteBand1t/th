@@ -1,25 +1,32 @@
 shodan:
   api_key: "${SHODAN_API_KEY}"
   queries:
-    - 'ollama port:11434 org:"University"'
-    - 'ollama port:11434 org:"Universitaet"'
-    - 'ollama port:11434 org:"Hochschule"'
-    - 'ollama port:11434 org:"Institut"'
-    - 'ollama port:11434 org:"Research"'
-    - 'ollama port:11434'
-    - 'http.title:"Ollama" org:"University"'
-    - 'http.title:"Ollama" org:"Research"'
-    - 'http.title:"Ollama"'
-    - '"ollama" "models" http.status:200'
-  max_results: 50
+    - 'port:11434 org:University'
+    - 'port:11434 org:Universitaet'
+    - 'port:11434 org:Universitat'
+    - 'port:11434 org:Hochschule'
+    - 'port:11434 org:Institut'
+    - 'port:11434 org:Research'
+    - 'port:11434 org:College'
+    - 'port:11434 org:Academic'
+    - 'port:11434 org:Science'
+    - 'port:11434 org:Laboratory'
+    - 'port:11434 org:CNRS'
+    - 'port:11434 org:MIT'
+    - 'port:11434 org:ETH'
+    - 'http.title:Ollama'
+    - 'port:11434'
+  max_results: 100
   exclude_orgs:
     - "Amazon"
     - "AWS"
-    - "AMAZON"
     - "Google"
     - "Microsoft"
     - "Azure"
     - "OVH"
+    - "DigitalOcean"
+    - "Linode"
+    - "Vultr"
 
 litellm:
   base_url: "${LITELLM_BASE_URL}"
