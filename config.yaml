@@ -27,15 +27,18 @@ shodan:
     - "DigitalOcean"
     - "Linode"
     - "Vultr"
+  exclude_ips:
+    - "45.79.132.184"
 
 litellm:
   base_url: "${LITELLM_BASE_URL}"
   master_key: "${LITELLM_MASTER_KEY}"
 
 target_models:
-  # Nur 27B+ Modelle — kleine Modelle sind für Paperclip zu schwach
   - name: qwen3-coder-next
-    min_size_b: 30
+    min_size_b: 0
+  - name: qwen3-coder
+    min_size_b: 27
   - name: qwen3
     min_size_b: 27
   - name: qwen2.5-coder
