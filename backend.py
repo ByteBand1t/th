@@ -173,3 +173,137 @@ def benchmark_single(req: BenchmarkRequest):
                 ttft  = None
                 tokens = 0
                 text   = ""
+
+                with httpx.stream("POST", f"{base_url}/api/generate",
+                                  json=payload, timeout=90.0) as resp:
+                    resp.raise_for_status()
+                    for line in resp.iter_lines():
+                        if not line:
+                            continue
+                        try:
+                            chunk = json.loads(line)
+                        except Exception:
+                            continue
+                        frag = chunk.get("response", "")
+                        if frag:
+                            if ttft is None:
+                                ttft = time.perf_counter() - t0
+                            tokens += 1
+                            text   += frag
+                        if chunk.get("done"):
+                            break
+
+                elapsed = time.perf_counter() - t0
+                ttfts.append(ttft or elapsed)
+                tpss.append(tokens / elapsed if elapsed else 0)
+                last_text = text
+
+            except Exception as e:
+                error = str(e)
+                break
+
+        if error or not ttfts:
+            results.append({
+                "model": model,
+                "ok": False,
+                "error": error or "No data",
+                "ttft": None,
+                "tps": None,
+                "response": "",
+            })
+        else:
+            avg_ttft = sum(ttfts) / len(ttfts)
+            avg_tps  = sum(tpss)  / len(tpss)
+            results.append({
+                "model":    model,
+                "ok":       avg_ttft <= 5.0 and avg_tps >= 8.0,
+                "ttft":     round(avg_ttft, 3),
+                "tps":      round(avg_tps, 1),
+                "response": last_text,
+                "error":    None,
+            })
+
+    return {"ip": req.ip, "port": req.port, "results": results}
+
+
+@app.post("/api/add-manual")
+def add_manual(req: AddRequest):
+    """Manually add a benchmarked model to LiteLLM and results.json."""
+    import re
+    import sys
+    sys.path.insert(0, "/app/scanner")
+    from litellm_manager import LiteLLMManager
+    from ollama_checker import ModelCandidate
+    from shodan_scanner import OllamaHost
+
+    litellm_base = os.environ.get("LITELLM_BASE_URL", "")
+    litellm_key  = os.environ.get("LITELLM_MASTER_KEY", "")
+
+    log_lines: list[str] = []
+    mgr = LiteLLMManager(litellm_base, litellm_key, log_fn=log_lines.append)
+
+    # Build a fake candidate
+    host = OllamaHost(ip=req.ip, port=req.port, country=req.country, org=req.org)
+    # Find matched target
+    matched = req.model.split(":")[0]
+
+    class FakeCandidate:
+        model_name          = req.model
+        matched_target      = matched
+        ttft                = req.ttft
+        tokens_per_second   = req.tps
+        response_text       = req.response
+        benchmark_ok        = True
+        benchmark_error     = None
+
+        @property
+        def litellm_model_string(self): return f"ollama/{req.model}"
+        @property
+        def litellm_model_name(self):
+            safe = req.model.replace(":", "-").replace("/", "-")
+            return f"{safe}@{req.ip.replace('.', '-')}"
+        @property
+        def pool_name(self):
+            base = matched.replace(":", "-")
+            m = re.search(r"(\d+(?:\.\d+)?)b", req.model.lower())
+            size = int(float(m.group(1))) if m else 0
+            return f"{base}-{size}b-pool" if size else f"{base}-pool"
+        host = host
+
+    c = FakeCandidate()
+    mgr.add_model(c)
+
+    # Also append to results.json
+    data = load_results()
+    from datetime import datetime, timezone
+    new_entry = {
+        "id":          len(data.get("candidates", [])) + 1,
+        "ip":          req.ip,
+        "port":        req.port,
+        "country":     req.country,
+        "org":         req.org,
+        "model":       req.model,
+        "matched":     matched,
+        "ttft":        req.ttft,
+        "tps":         req.tps,
+        "response":    req.response,
+        "status":      "added",
+        "failReason":  None,
+        "litellmName": c.litellm_model_name,
+        "manual":      True,
+    }
+    data.setdefault("candidates", []).append(new_entry)
+    RESULTS_FILE.write_text(json.dumps(data, indent=2, ensure_ascii=False))
+
+    return {"message": f"Added {req.model}", "log": log_lines, "entry": new_entry}
+
+
+# ── Frontend ─────────────────────────────────────────────────
+
+FRONTEND = Path("/app/frontend")
+
+@app.get("/")
+def serve_index():
+    return FileResponse(str(FRONTEND / "index.html"))
+
+app.mount("/", StaticFiles(directory=str(FRONTEND), html=True), name="frontend")
