@@ -25,22 +25,23 @@ USER_MODELS   = DATA_DIR / "user_models.json"
 SCANNER       = Path("/app/scanner/main.py")
 HEALTH_CHK    = Path("/app/scanner/health_check.py")
 
-app = FastAPI(title="OllamaScout", version="1.0")
+app = FastAPI(title="OllamaScout", version="2.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 DATA_DIR.mkdir(exist_ok=True)
 
-# ── Default schedule ─────────────────────────────────────────
 DEFAULT_SCHEDULE = {
-    "full_scan_enabled":          True,
-    "full_scan_weekday":          6,      # 0=Mon … 6=Sun
-    "full_scan_hour":             3,
-    "health_check_enabled":       True,
+    "full_scan_enabled":           True,
+    "full_scan_weekday":           6,
+    "full_scan_hour":              3,
+    "health_check_enabled":        True,
     "health_check_interval_hours": 12,
-    "next_health_check":          None,
-    "next_full_scan":             None,
+    "next_health_check":           None,
+    "next_full_scan":              None,
 }
 
+
+# ── Helpers ───────────────────────────────────────────────────
 
 def load_schedule() -> dict:
     if SCHEDULE_FILE.exists():
@@ -106,30 +107,25 @@ def _run_health_check():
         HLOCK_FILE.unlink(missing_ok=True)
 
 
-# ── Scheduler thread ──────────────────────────────────────────
+# ── Scheduler ─────────────────────────────────────────────────
 
 def _scheduler():
-    """Background thread — checks every 60s if a job needs to run."""
     while True:
         try:
+            from datetime import timedelta
             s   = load_schedule()
             now = datetime.now(timezone.utc)
 
-            # Health check
             if s.get("health_check_enabled") and not HLOCK_FILE.exists() and not LOCK_FILE.exists():
                 nxt = s.get("next_health_check")
                 if nxt is None or datetime.fromisoformat(nxt) <= now:
                     threading.Thread(target=_run_health_check, daemon=True).start()
-                    from datetime import timedelta
                     s["next_health_check"] = (now + timedelta(hours=s["health_check_interval_hours"])).isoformat()
                     save_schedule(s)
 
-            # Full scan
             if s.get("full_scan_enabled") and not LOCK_FILE.exists():
                 nxt = s.get("next_full_scan")
                 if nxt is None:
-                    # Schedule next occurrence
-                    from datetime import timedelta
                     target_wd = s["full_scan_weekday"]
                     target_hr = s["full_scan_hour"]
                     days_ahead = (target_wd - now.weekday()) % 7
@@ -141,7 +137,6 @@ def _scheduler():
                     save_schedule(s)
                 elif datetime.fromisoformat(nxt) <= now:
                     threading.Thread(target=_run_scan, daemon=True).start()
-                    from datetime import timedelta
                     s["next_full_scan"] = (now + timedelta(days=7)).isoformat()
                     save_schedule(s)
         except Exception:
@@ -162,6 +157,20 @@ def get_results():
     data["health"]         = load_health()
     data["schedule"]       = load_schedule()
     return data
+
+
+@app.get("/api/status")
+def get_status():
+    data = load_results()
+    candidates = data.get("candidates", [])
+    return {
+        "scanning":        LOCK_FILE.exists(),
+        "lastScan":        data.get("lastScan"),
+        "hostsScanned":    data.get("hostsScanned", 0),
+        "totalCandidates": len(candidates),
+        "added":           sum(1 for c in candidates if c.get("status") == "added"),
+        "failed":          sum(1 for c in candidates if c.get("status") == "failed"),
+    }
 
 
 @app.post("/api/scan")
@@ -209,8 +218,7 @@ def get_schedule():
 def update_schedule(s: ScheduleUpdate):
     current = load_schedule()
     current.update(s.dict())
-    # Reset next_full_scan so scheduler recalculates
-    current["next_full_scan"]   = None
+    current["next_full_scan"]    = None
     current["next_health_check"] = None
     save_schedule(current)
     return current
@@ -234,16 +242,14 @@ def get_target_models():
                 var, default = expr.split(":-", 1)
                 return os.environ.get(var, default)
             return os.environ.get(expr, m.group(0))
-        cfg  = yaml.safe_load(re.sub(r"\$\{([^}]+)\}", _expand, raw))
+        cfg = yaml.safe_load(re.sub(r"\$\{([^}]+)\}", _expand, raw))
         base = cfg.get("target_models", [])
-        # Normalise
         base_norm = [{"name": t, "min_size_b": 0, "source": "config"} if isinstance(t, str)
                      else {**t, "source": "config"} for t in base]
     except Exception:
         base_norm = []
     user = [{"name": m["name"], "min_size_b": m.get("min_size_b", 0), "source": "user"}
             for m in load_user_models()]
-    # Merge: user entries override config entries of same name
     merged = {m["name"]: m for m in base_norm}
     for m in user:
         merged[m["name"]] = m
@@ -271,18 +277,28 @@ def remove_target_model(name: str):
     return {"message": f"Removed {name}"}
 
 
-# ── Manual Add API ────────────────────────────────────────────
+# ── Probe / Benchmark / Manual Add ───────────────────────────
 
 class ProbeRequest(BaseModel):
-    ip: str
+    ip:   str
     port: int = 11434
 
+
 class BenchmarkRequest(BaseModel):
-    ip: str; port: int; models: List[str]
+    ip:     str
+    port:   int
+    models: List[str]
+
 
 class AddRequest(BaseModel):
-    ip: str; port: int; org: str = "manual"; country: str = "??"
-    model: str; ttft: float; tps: float; response: str
+    ip:       str
+    port:     int
+    org:      str   = "manual"
+    country:  str   = "??"
+    model:    str
+    ttft:     float
+    tps:      float
+    response: str
 
 
 @app.post("/api/probe")
@@ -290,13 +306,15 @@ def probe_host(req: ProbeRequest):
     try:
         r = httpx.get(f"http://{req.ip}:{req.port}/api/tags", timeout=6.0)
         r.raise_for_status()
-        return {"ip": req.ip, "port": req.port, "reachable": True,
-                "models": [{"name": m.get("name",""), "size": m.get("size",0)}
-                           for m in r.json().get("models", [])]}
+        return {
+            "ip": req.ip, "port": req.port, "reachable": True,
+            "models": [{"name": m.get("name", ""), "size": m.get("size", 0)}
+                       for m in r.json().get("models", [])],
+        }
     except httpx.ConnectError:
         raise HTTPException(status_code=502, detail=f"Cannot connect to {req.ip}:{req.port}")
     except httpx.TimeoutException:
-        raise HTTPException(status_code=504, detail=f"Timeout")
+        raise HTTPException(status_code=504, detail="Timeout")
     except Exception as e:
         raise HTTPException(status_code=502, detail=str(e))
 
@@ -311,42 +329,60 @@ def benchmark_single(req: BenchmarkRequest):
         for _ in range(3):
             try:
                 t0 = t.perf_counter(); ttft = None; tokens = 0; text = ""
-                with httpx.stream("POST", f"{base_url}/api/generate",
-                                  json={"model":model,"prompt":"Hallo, wie geht es dir?","stream":True,"options":{"num_predict":80}},
-                                  timeout=90.0) as resp:
+                with httpx.stream(
+                    "POST", f"{base_url}/api/generate",
+                    json={"model": model, "prompt": "Hallo, wie geht es dir?",
+                          "stream": True, "options": {"num_predict": 80}},
+                    timeout=90.0,
+                ) as resp:
+                    if resp.status_code == 401:
+                        raise PermissionError("401 Unauthorized")
                     resp.raise_for_status()
                     for line in resp.iter_lines():
                         if not line: continue
                         try: chunk = json.loads(line)
                         except: continue
-                        frag = chunk.get("response","")
+                        frag = chunk.get("response", "")
                         if frag:
-                            if ttft is None: ttft = t.perf_counter()-t0
+                            if ttft is None: ttft = t.perf_counter() - t0
                             tokens += 1; text += frag
                         if chunk.get("done"): break
-                elapsed = t.perf_counter()-t0
-                ttfts.append(ttft or elapsed); tpss.append(tokens/elapsed if elapsed else 0); last_text=text
+                elapsed = t.perf_counter() - t0
+                ttfts.append(ttft or elapsed)
+                tpss.append(tokens / elapsed if elapsed else 0)
+                last_text = text
             except Exception as e:
                 error = str(e); break
         if error or not ttfts:
-            results.append({"model":model,"ok":False,"error":error or "No data","ttft":None,"tps":None,"response":""})
+            results.append({"model": model, "ok": False, "error": error or "No data",
+                            "ttft": None, "tps": None, "response": ""})
         else:
-            avg_ttft = sum(ttfts)/len(ttfts); avg_tps = sum(tpss)/len(tpss)
-            results.append({"model":model,"ok":avg_ttft<=5.0 and avg_tps>=8.0,
-                            "ttft":round(avg_ttft,3),"tps":round(avg_tps,1),"response":last_text,"error":None})
-    return {"ip":req.ip,"port":req.port,"results":results}
+            avg_ttft = sum(ttfts) / len(ttfts)
+            avg_tps  = sum(tpss)  / len(tpss)
+            results.append({
+                "model": model,
+                "ok":    avg_ttft <= 15.0 and avg_tps >= 3.0,
+                "ttft":  round(avg_ttft, 3),
+                "tps":   round(avg_tps, 1),
+                "response": last_text,
+                "error": None,
+            })
+    return {"ip": req.ip, "port": req.port, "results": results}
 
 
 def _do_add(req: AddRequest):
-    sys.path.insert(0, "/app/scanner")
-    from litellm_manager import LiteLLMManager
-    from ollama_checker import ModelCandidate
-    from shodan_scanner import OllamaHost
     import re
+    sys.path.insert(0, "/app/scanner")
+    os.chdir("/app/scanner")
+    from litellm_manager import LiteLLMManager
+    from shodan_scanner import OllamaHost
 
     log_lines: list[str] = []
-    mgr  = LiteLLMManager(os.environ.get("LITELLM_BASE_URL",""),
-                          os.environ.get("LITELLM_MASTER_KEY",""), log_fn=log_lines.append)
+    mgr  = LiteLLMManager(
+        os.environ.get("LITELLM_BASE_URL", ""),
+        os.environ.get("LITELLM_MASTER_KEY", ""),
+        log_fn=log_lines.append,
+    )
     host = OllamaHost(ip=req.ip, port=req.port, country=req.country, org=req.org)
 
     class FC:
@@ -357,39 +393,67 @@ def _do_add(req: AddRequest):
         response_text     = req.response
         benchmark_ok      = True
         benchmark_error   = None
+
         @property
-        def litellm_model_string(self): return f"ollama/{req.model}"
+        def litellm_model_string(self):
+            return f"ollama/{req.model}"
+
         @property
         def litellm_model_name(self):
-            return f"{req.model.replace(':','-').replace('/','-')}@{req.ip.replace('.', '-')}"
+            return f"{req.model.replace(':', '-').replace('/', '-')}@{req.ip.replace('.', '-')}"
+
         @property
         def pool_name(self):
-            base = self.matched_target; m = re.search(r"(\d+)b", req.model.lower())
+            base = self.matched_target
+            m    = re.search(r"(\d+)b", req.model.lower())
             return f"{base}-{m.group(1)}b-pool" if m else f"{base}-pool"
-        host = host
 
     c = FC()
+    c.__class__.host = host  # fix: assign host after class definition
+
     mgr.add_model(c)
-    data = load_results()
-    entry = {"id": len(data.get("candidates",[])) + 1, "ip": req.ip, "port": req.port,
-             "country": req.country, "org": req.org, "model": req.model,
-             "matched": c.matched_target, "ttft": req.ttft, "tps": req.tps,
-             "response": req.response, "status": "added", "failReason": None,
-             "litellmName": c.litellm_model_name, "manual": True}
+
+    data  = load_results()
+    entry = {
+        "id":          len(data.get("candidates", [])) + 1,
+        "ip":          req.ip,
+        "port":        req.port,
+        "country":     req.country,
+        "org":         req.org,
+        "model":       req.model,
+        "matched":     c.matched_target,
+        "ttft":        req.ttft,
+        "tps":         req.tps,
+        "response":    req.response,
+        "status":      "added",
+        "failReason":  None,
+        "litellmName": c.litellm_model_name,
+        "manual":      True,
+    }
     data.setdefault("candidates", []).append(entry)
     RESULTS_FILE.write_text(json.dumps(data, indent=2, ensure_ascii=False))
     return {"message": f"Added {req.model}", "log": log_lines, "entry": entry}
 
 
 @app.post("/api/add-manual")
-def add_manual(req: AddRequest): return _do_add(req)
+def add_manual(req: AddRequest):
+    return _do_add(req)
+
 
 @app.post("/api/add-anyway")
-def add_anyway(req: AddRequest): return _do_add(req)
+def add_anyway(req: AddRequest):
+    return _do_add(req)
 
+
+# ── Chat ──────────────────────────────────────────────────────
 
 class ChatRequest(BaseModel):
-    ip: str; port: int; model: str; message: str; history: list = []
+    ip:      str
+    port:    int
+    model:   str
+    message: str
+    history: list = []
+
 
 @app.post("/api/chat")
 def chat_with_model(req: ChatRequest):
@@ -397,12 +461,16 @@ def chat_with_model(req: ChatRequest):
     messages = req.history + [{"role": "user", "content": req.message}]
     t0 = t.perf_counter()
     try:
-        r = httpx.post(f"http://{req.ip}:{req.port}/api/chat",
-                       json={"model": req.model, "messages": messages, "stream": False},
-                       timeout=60.0)
+        r = httpx.post(
+            f"http://{req.ip}:{req.port}/api/chat",
+            json={"model": req.model, "messages": messages, "stream": False},
+            timeout=60.0,
+        )
         r.raise_for_status()
-        return {"response": r.json().get("message", {}).get("content", ""),
-                "elapsed": round(t.perf_counter()-t0, 2)}
+        return {
+            "response": r.json().get("message", {}).get("content", ""),
+            "elapsed":  round(t.perf_counter() - t0, 2),
+        }
     except httpx.TimeoutException:
         raise HTTPException(status_code=504, detail="Model timed out")
     except Exception as e:
@@ -418,10 +486,13 @@ def delete_model(model_name: str):
 
 
 # ── Frontend ──────────────────────────────────────────────────
+
 FRONTEND = Path("/app/frontend")
+
 
 @app.get("/")
 def serve_index():
     return FileResponse(str(FRONTEND / "index.html"))
+
 
 app.mount("/", StaticFiles(directory=str(FRONTEND), html=True), name="frontend")
