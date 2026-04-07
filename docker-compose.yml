@@ -1,0 +1,18 @@
+services:
+  ollama-scout:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ollama-scout
+    restart: unless-stopped
+    ports:
+      - "8390:8000"
+    environment:
+      SHODAN_API_KEY:    ${SHODAN_API_KEY}
+      LITELLM_BASE_URL:  ${LITELLM_BASE_URL}
+      LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY}
+    volumes:
+      - ollama-scout-data:/data
+
+volumes:
+  ollama-scout-data:

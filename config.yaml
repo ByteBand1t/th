@@ -1,0 +1,28 @@
+shodan:
+  api_key: "${SHODAN_API_KEY}"
+  query: '"Ollama is running" port:11434'
+  max_results: 100
+
+litellm:
+  base_url: "${LITELLM_BASE_URL}"
+  master_key: "${LITELLM_MASTER_KEY}"
+
+target_models:
+  - qwen3-coder-next
+  - qwen3
+  - deepseek-coder-v2
+  - llama3
+  - mistral
+  - gemma3
+  - phi4
+  - glm-4
+
+benchmark:
+  enabled: true
+  prompt: "Hallo, wie geht es dir?"
+  max_ttft_seconds: 8.0
+  min_tokens_per_second: 5.0
+  min_response_length: 20
+  runs: 2
+
+litellm_model_tag: "ollama-scout"
