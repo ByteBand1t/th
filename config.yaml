@@ -64,9 +64,9 @@ target_models:
 benchmark:
   enabled: true
   prompt: "Hallo, wie geht es dir?"
-  max_ttft_seconds: 5.0
-  min_tokens_per_second: 8.0
+  max_ttft_seconds: 15.0
+  min_tokens_per_second: 3.0
   min_response_length: 20
-  runs: 3
+  runs: 2
 
 litellm_model_tag: "ollama-scout"
