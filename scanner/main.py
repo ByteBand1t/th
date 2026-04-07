@@ -134,4 +134,14 @@ def main():
             "tps": round(c.tokens_per_second, 1) if c.tokens_per_second else None,
             "response": c.response_text,
             "status": "added" if c.benchmark_ok else "failed",
-            "failReason
+            "failReason": c.benchmark_error if not c.benchmark_ok else None,
+            "litellmName": c.litellm_model_name if c.benchmark_ok else None,
+        }
+        for i, c in enumerate(candidates)
+    ]
+    save(results)
+    L("\nScan complete.")
+
+
+if __name__ == "__main__":
+    main()
