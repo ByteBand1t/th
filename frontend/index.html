@@ -4,135 +4,219 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>OllamaScout</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body, #root { height: 100%; }
-body { background: #070711; color: #e0e0e0; font-family: 'IBM Plex Mono', 'Courier New', monospace; -webkit-font-smoothing: antialiased; }
-::-webkit-scrollbar { width: 4px; height: 4px; }
-::-webkit-scrollbar-track { background: #0d0d1a; }
-::-webkit-scrollbar-thumb { background: #00ff8833; border-radius: 2px; }
-@keyframes pulse  { 0%,100%{opacity:1} 50%{opacity:0.3} }
-@keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-@keyframes glow   { 0%,100%{box-shadow:0 0 6px #00ff8844} 50%{box-shadow:0 0 18px #00ff8888} }
-@keyframes blink  { 0%,49%{opacity:1} 50%,100%{opacity:0} }
-@keyframes spin   { to{transform:rotate(360deg)} }
-.fade-up { animation: fadeUp 0.45s ease both; }
-.row-item { transition: background .12s, transform .1s, border-color .12s; cursor: pointer; }
-.row-item:hover { background: #00ff8808 !important; transform: translateX(3px); border-left-color: #00ff8855 !important; }
-.btn { transition: all .15s; cursor: pointer; font-family: inherit; }
-.btn:hover:not(:disabled) { opacity: .82; transform: translateY(-1px); }
-.btn:active:not(:disabled) { transform: translateY(0); }
-.pill { transition: all .12s; cursor: pointer; font-family: inherit; }
-.pill:hover { opacity: .8; }
-.modal-back { position:fixed;inset:0;background:rgba(4,4,16,.92);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:200;animation:fadeUp .18s ease; }
-.modal-box  { background:#0a0a1c;border:1px solid #00ff8833;border-radius:14px;padding:28px;width:min(560px,95vw);box-shadow:0 0 60px #00ff8815,0 24px 64px rgba(0,0,0,.6);animation:fadeUp .22s ease;max-height:90vh;overflow-y:auto; }
-.manual-box { background:#0a0a1c;border:1px solid #4488ff33;border-radius:14px;padding:28px;width:min(640px,95vw);box-shadow:0 0 60px #4488ff15,0 24px 64px rgba(0,0,0,.6);animation:fadeUp .22s ease;max-height:90vh;overflow-y:auto; }
-.log-line     { font-size:11px;line-height:1.75;color:#2a4a34; }
-.log-line.ok  { color:#00ff88; }
-.log-line.err { color:#ff4466; }
-.log-line.head{ color:#4488ff; }
-.log-line.dim { color:#1e3028; }
-.check-row { display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:background .12s; }
-.check-row:hover { background:#ffffff08; }
-input[type=checkbox] { accent-color:#00ff88;width:14px;height:14px;cursor:pointer; }
-input[type=text], input[type=number] { background:#06060f;border:1px solid #1a1a2e;color:#e0e0e0;border-radius:6px;padding:8px 12px;font-family:inherit;font-size:12px;outline:none;transition:border-color .15s; }
-input[type=text]:focus, input[type=number]:focus { border-color:#4488ff66; }
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  background: #f8f9fb;
+  color: #111827;
+  -webkit-font-smoothing: antialiased;
+}
+:root {
+  --white: #ffffff;
+  --gray-50: #f8f9fb;
+  --gray-100: #f1f3f6;
+  --gray-200: #e5e8ef;
+  --gray-300: #d1d5de;
+  --gray-400: #9ca3b0;
+  --gray-500: #6b7280;
+  --gray-700: #374151;
+  --gray-900: #111827;
+  --blue-50: #eff6ff;
+  --blue-100: #dbeafe;
+  --blue-500: #3b82f6;
+  --blue-600: #2563eb;
+  --blue-700: #1d4ed8;
+  --green-50: #f0fdf4;
+  --green-100: #dcfce7;
+  --green-500: #22c55e;
+  --green-600: #16a34a;
+  --green-700: #15803d;
+  --red-50: #fef2f2;
+  --red-100: #fee2e2;
+  --red-500: #ef4444;
+  --red-600: #dc2626;
+  --red-700: #b91c1c;
+  --amber-50: #fffbeb;
+  --amber-100: #fef3c7;
+  --amber-500: #f59e0b;
+  --amber-600: #d97706;
+  --amber-700: #b45309;
+  --purple-50: #faf5ff;
+  --purple-100: #ede9fe;
+  --purple-600: #9333ea;
+  --purple-700: #7c3aed;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -1px rgba(0,0,0,0.04);
+}
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--gray-100); }
+::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 3px; }
+@keyframes fadeIn  { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+@keyframes pulse   { 0%,100%{opacity:1} 50%{opacity:0.4} }
+@keyframes spin    { to{transform:rotate(360deg)} }
+@keyframes blink   { 0%,49%{opacity:1} 50%,100%{opacity:0} }
+.fade-in { animation: fadeIn 0.3s ease both; }
+.card { background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: var(--radius-md); border: 1px solid var(--gray-200); background: var(--white); color: var(--gray-700); font-size: 13px; font-weight: 500; font-family: inherit; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+.btn:hover:not(:disabled) { background: var(--gray-50); border-color: var(--gray-300); }
+.btn:active:not(:disabled) { transform: scale(0.98); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-primary { background: var(--blue-600); border-color: var(--blue-600); color: #fff; }
+.btn-primary:hover:not(:disabled) { background: var(--blue-700); border-color: var(--blue-700); }
+.btn-success { background: var(--green-600); border-color: var(--green-600); color: #fff; }
+.btn-success:hover:not(:disabled) { background: var(--green-700); border-color: var(--green-700); }
+.btn-danger  { background: var(--red-600);  border-color: var(--red-600);  color: #fff; }
+input[type=text], input[type=number] {
+  width: 100%; padding: 8px 10px;
+  border: 1px solid var(--gray-200); border-radius: var(--radius-md);
+  font-size: 13px; font-family: inherit; background: var(--white); color: var(--gray-900);
+  outline: none; transition: border-color 0.15s;
+}
+input[type=text]:focus, input[type=number]:focus { border-color: var(--blue-500); box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+input[type=checkbox] { accent-color: var(--blue-600); width: 15px; height: 15px; cursor: pointer; }
+.pill { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 500; }
+.pill-green  { background: var(--green-100); color: var(--green-700); }
+.pill-red    { background: var(--red-100);   color: var(--red-700); }
+.pill-amber  { background: var(--amber-100); color: var(--amber-700); }
+.pill-blue   { background: var(--blue-100);  color: var(--blue-700); }
+.pill-gray   { background: var(--gray-100);  color: var(--gray-500); }
+.pill-purple { background: var(--purple-100);color: var(--purple-700); }
+.row { display: flex; align-items: center; gap: 8px; }
+.table-row { display: grid; padding: 10px 16px; border-bottom: 1px solid var(--gray-100); align-items: center; font-size: 13px; transition: background 0.1s; cursor: pointer; }
+.table-row:hover { background: var(--gray-50); }
+.table-row:last-child { border-bottom: none; }
+.log-area { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 11px; line-height: 1.7; }
+.log-ok   { color: var(--green-600); }
+.log-err  { color: var(--red-600); }
+.log-head { color: var(--blue-600); font-weight: 600; }
+.log-dim  { color: var(--gray-400); }
+.log-normal { color: var(--gray-700); }
+.modal-overlay { position: fixed; inset: 0; background: rgba(17,24,39,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; animation: fadeIn 0.15s ease; }
+.modal-panel { background: var(--white); border-radius: var(--radius-lg); box-shadow: var(--shadow-md), 0 20px 40px rgba(0,0,0,0.12); width: min(580px, 95vw); max-height: 90vh; overflow-y: auto; animation: fadeIn 0.2s ease; }
+.section-label { font-size: 11px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gray-400); margin-bottom: 6px; }
+.tps-bar-wrap { display: flex; align-items: center; gap: 8px; }
+.tps-bar-bg { height: 4px; width: 72px; background: var(--gray-100); border-radius: 2px; overflow: hidden; }
+.tps-bar-fill { height: 100%; border-radius: 2px; transition: width 0.8s ease; }
+.check-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px; cursor: pointer; transition: background 0.1s; border-bottom: 1px solid var(--gray-100); }
+.check-item:hover { background: var(--gray-50); }
+.check-item:last-child { border-bottom: none; }
 </style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
 const { useState, useEffect, useRef, useCallback } = React;
-const FLAG  = {DE:"🇩🇪",US:"🇺🇸",NL:"🇳🇱",SG:"🇸🇬",GB:"🇬🇧",FR:"🇫🇷",JP:"🇯🇵",AU:"🇦🇺",CA:"🇨🇦",CN:"🇨🇳",RU:"🇷🇺",CH:"🇨🇭",AT:"🇦🇹",SE:"🇸🇪",FI:"🇫🇮",NO:"🇳🇴"};
+
+const FLAG = {DE:"🇩🇪",US:"🇺🇸",NL:"🇳🇱",SG:"🇸🇬",GB:"🇬🇧",FR:"🇫🇷",JP:"🇯🇵",AU:"🇦🇺",CA:"🇨🇦",CN:"🇨🇳",RU:"🇷🇺",CH:"🇨🇭",AT:"🇦🇹",SE:"🇸🇪",FI:"🇫🇮",NO:"🇳🇴"};
 const EMPTY = { lastScan:null, scanning:false, hostsScanned:0, candidates:[], log:[] };
 
-/* ── TPS bar ── */
 function TpsBar({ value=0 }) {
   const pct = Math.min((value/30)*100,100);
-  const c = value>=10?"#00ff88":value>=8?"#88ff44":value>=5?"#ffaa00":"#ff4466";
+  const color = value>=10?"#16a34a":value>=8?"#2563eb":value>=5?"#d97706":"#dc2626";
   return (
-    <div style={{display:"flex",alignItems:"center",gap:7}}>
-      <div style={{width:68,height:5,background:"#111",borderRadius:3,overflow:"hidden"}}>
-        <div style={{width:`${pct}%`,height:"100%",background:c,borderRadius:3,boxShadow:`0 0 5px ${c}88`,transition:"width 1s ease"}}/>
+    <div className="tps-bar-wrap">
+      <div className="tps-bar-bg">
+        <div className="tps-bar-fill" style={{width:`${pct}%`,background:color}}/>
       </div>
-      <span style={{color:c,fontSize:11,minWidth:34}}>{(value||0).toFixed(1)}</span>
+      <span style={{fontSize:12,fontWeight:500,color,minWidth:32}}>{(value||0).toFixed(1)}</span>
     </div>
   );
 }
 
-/* ── Badge ── */
-function Badge({ status }) {
-  const m = {
-    added:   ["ADDED",  "#00ff8812","#00ff8833","#00ff88"],
-    failed:  ["FAIL",   "#ff446612","#ff446633","#ff4466"],
-    pending: ["TEST…",  "#ffaa0012","#ffaa0033","#ffaa00"],
-    manual:  ["MANUAL", "#4488ff12","#4488ff33","#4488ff"],
-  }[status]||[status.toUpperCase(),"#ffffff08","#ffffff15","#888"];
-  return <span style={{background:m[1],border:`1px solid ${m[2]}`,color:m[3],fontSize:9,fontWeight:700,letterSpacing:1,borderRadius:4,padding:"2px 7px"}}>{m[0]}</span>;
+function StatusPill({ status, manual }) {
+  if (manual && status==="added") return <span className="pill pill-purple">manual</span>;
+  const m = {added:"pill-green",failed:"pill-red",pending:"pill-amber"}[status]||"pill-gray";
+  const l = {added:"Added",failed:"Failed",pending:"Testing…"}[status]||status;
+  return <span className={`pill ${m}`}>{l}</span>;
 }
 
-/* ── Detail modal ── */
+function StatCard({ label, value, color }) {
+  const colors = {blue:"#2563eb",green:"#16a34a",red:"#dc2626",amber:"#d97706"};
+  return (
+    <div className="card" style={{padding:"16px 20px"}}>
+      <div className="section-label">{label}</div>
+      <div style={{fontSize:28,fontWeight:600,color:colors[color]||"#111827",marginTop:4}}>{value}</div>
+    </div>
+  );
+}
+
 function DetailModal({ c, onClose }) {
-  useEffect(() => {
-    const h = e => e.key==="Escape"&&onClose();
-    document.addEventListener("keydown",h);
-    return ()=>document.removeEventListener("keydown",h);
-  },[]);
+  useEffect(()=>{ const h=e=>e.key==="Escape"&&onClose(); document.addEventListener("keydown",h); return()=>document.removeEventListener("keydown",h); },[]);
+  const ttftOk = c.ttft <= 5;
+  const tpsOk  = c.tps  >= 8;
   return (
-    <div className="modal-back" onClick={onClose}>
-      <div className="modal-box" onClick={e=>e.stopPropagation()}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:20}}>
-          <div>
-            <div style={{color:"#00ff88",fontSize:15,fontWeight:700}}>{c.model}</div>
-            <div style={{color:"#444",fontSize:11,marginTop:3}}>{FLAG[c.country]||"🌐"} {c.ip}:{c.port} · {c.org}</div>
-          </div>
-          <button className="btn" onClick={onClose} style={{background:"none",border:"1px solid #222",color:"#555",borderRadius:6,padding:"4px 12px",fontSize:11}}>ESC</button>
-        </div>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:16}}>
-          {[["TTFT",c.ttft!=null?`${c.ttft.toFixed(2)}s`:"—",c.ttft<=5?"#00ff88":"#ff4466"],
-            ["TPS",c.tps!=null?c.tps.toFixed(1):"—",c.tps>=8?"#00ff88":"#ff4466"],
-            ["PATTERN",c.matched||"—","#4488ff"]].map(([l,v,col])=>(
-            <div key={l} style={{background:"#06060f",border:"1px solid #111",borderRadius:8,padding:"11px 14px"}}>
-              <div style={{color:"#333",fontSize:8,letterSpacing:2,marginBottom:5}}>{l}</div>
-              <div style={{color:col,fontSize:19,fontWeight:700,fontFamily:"'Orbitron',monospace"}}>{v}</div>
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-panel" onClick={e=>e.stopPropagation()}>
+        <div style={{padding:"20px 24px",borderBottom:"1px solid var(--gray-200)"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+            <div>
+              <div style={{fontSize:15,fontWeight:600}}>{c.model}</div>
+              <div style={{fontSize:12,color:"var(--gray-500)",marginTop:3}}>
+                {FLAG[c.country]||"🌐"} {c.ip}:{c.port} · {c.org}
+              </div>
             </div>
-          ))}
+            <button className="btn" onClick={onClose} style={{fontSize:12,padding:"4px 10px"}}>Close</button>
+          </div>
         </div>
-        {c.response&&<div style={{background:"#06060f",border:"1px solid #111",borderRadius:8,padding:14,marginBottom:12}}>
-          <div style={{color:"#333",fontSize:8,letterSpacing:2,marginBottom:6}}>BENCHMARK RESPONSE</div>
-          <div style={{color:"#aaa",fontSize:12,lineHeight:1.7,fontStyle:"italic"}}>"{c.response}"</div>
-        </div>}
-        {c.failReason&&<div style={{background:"#180810",border:"1px solid #ff446622",borderRadius:8,padding:"9px 14px",marginBottom:10,color:"#ff4466",fontSize:11}}>✗ {c.failReason}</div>}
-        {c.status==="added"&&c.litellmName&&<div style={{background:"#061208",border:"1px solid #00ff8822",borderRadius:8,padding:"9px 14px"}}>
-          <div style={{color:"#333",fontSize:8,letterSpacing:2,marginBottom:5}}>LITELLM MODEL STRING</div>
-          <code style={{color:"#00ff88",fontSize:12}}>ollama/{c.model}@{c.ip.replace(/\./g,"-")}</code>
-        </div>}
+        <div style={{padding:"20px 24px"}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:20}}>
+            {[
+              ["Time to first token", c.ttft!=null?`${c.ttft.toFixed(2)}s`:"—", ttftOk?"var(--green-600)":"var(--red-600)"],
+              ["Tokens / second",     c.tps !=null?c.tps.toFixed(1):"—",        tpsOk ?"var(--green-600)":"var(--red-600)"],
+              ["Matched pattern",     c.matched||"—", "var(--blue-600)"],
+            ].map(([l,v,col])=>(
+              <div key={l} style={{background:"var(--gray-50)",borderRadius:"var(--radius-md)",padding:"12px 14px"}}>
+                <div className="section-label">{l}</div>
+                <div style={{fontSize:18,fontWeight:600,color:col,marginTop:4}}>{v}</div>
+              </div>
+            ))}
+          </div>
+          {c.response&&(
+            <div style={{background:"var(--gray-50)",borderRadius:"var(--radius-md)",padding:14,marginBottom:14}}>
+              <div className="section-label">Benchmark response</div>
+              <div style={{fontSize:13,color:"var(--gray-700)",marginTop:6,fontStyle:"italic",lineHeight:1.6}}>"{c.response}"</div>
+            </div>
+          )}
+          {c.failReason&&(
+            <div style={{background:"var(--red-50)",border:"1px solid var(--red-100)",borderRadius:"var(--radius-md)",padding:"10px 14px",marginBottom:10}}>
+              <div style={{color:"var(--red-700)",fontSize:13}}>✗ {c.failReason}</div>
+            </div>
+          )}
+          {c.status==="added"&&c.litellmName&&(
+            <div style={{background:"var(--blue-50)",border:"1px solid var(--blue-100)",borderRadius:"var(--radius-md)",padding:"10px 14px"}}>
+              <div className="section-label">LiteLLM model string</div>
+              <code style={{fontSize:12,color:"var(--blue-700)",marginTop:4,display:"block"}}>ollama/{c.model}@{c.ip.replace(/\./g,"-")}</code>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
 }
 
-/* ── Manual Add Modal ── */
 function ManualModal({ onClose, onAdded }) {
-  const [step,      setStep]      = useState("input");   // input | probing | select | benchmarking | results
-  const [ip,        setIp]        = useState("");
-  const [port,      setPort]      = useState(11434);
-  const [models,    setModels]    = useState([]);
-  const [selected,  setSelected]  = useState([]);
-  const [benchRes,  setBenchRes]  = useState([]);
-  const [toAdd,     setToAdd]     = useState([]);
-  const [error,     setError]     = useState(null);
-  const [adding,    setAdding]    = useState(false);
+  const [step,     setStep]    = useState("input");
+  const [ip,       setIp]      = useState("");
+  const [port,     setPort]    = useState(11434);
+  const [models,   setModels]  = useState([]);
+  const [selected, setSelected]= useState([]);
+  const [benchRes, setBenchRes]= useState([]);
+  const [toAdd,    setToAdd]   = useState([]);
+  const [error,    setError]   = useState(null);
+  const [adding,   setAdding]  = useState(false);
 
-  useEffect(()=>{
-    const h=e=>e.key==="Escape"&&onClose();
-    document.addEventListener("keydown",h);
-    return ()=>document.removeEventListener("keydown",h);
-  },[]);
+  useEffect(()=>{ const h=e=>e.key==="Escape"&&onClose(); document.addEventListener("keydown",h); return()=>document.removeEventListener("keydown",h); },[]);
 
   const probe = async () => {
     if (!ip) return;
@@ -141,9 +225,7 @@ function ManualModal({ onClose, onAdded }) {
       const r = await fetch("/api/probe",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ip,port:Number(port)})});
       if (!r.ok) { const d=await r.json(); throw new Error(d.detail||"Probe failed"); }
       const d = await r.json();
-      setModels(d.models);
-      setSelected([]);
-      setStep("select");
+      setModels(d.models); setSelected([]); setStep("select");
     } catch(e) { setError(e.message); setStep("input"); }
   };
 
@@ -165,204 +247,161 @@ function ManualModal({ onClose, onAdded }) {
     for (const model of toAdd) {
       const res = benchRes.find(r=>r.model===model);
       if (!res) continue;
-      await fetch("/api/add-manual",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
-        ip, port:Number(port), model,
-        ttft:res.ttft, tps:res.tps, response:res.response,
-        org:"manual", country:"??",
-      })});
+      await fetch("/api/add-manual",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ip,port:Number(port),model,ttft:res.ttft,tps:res.tps,response:res.response,org:"manual",country:"??"})});
     }
-    setAdding(false);
-    onAdded();
-    onClose();
+    setAdding(false); onAdded(); onClose();
   };
 
-  const toggleSel = (name) => setSelected(s=>s.includes(name)?s.filter(x=>x!==name):[...s,name]);
-  const toggleAdd = (name) => setToAdd(s=>s.includes(name)?s.filter(x=>x!==name):[...s,name]);
+  const toggleSel = n => setSelected(s=>s.includes(n)?s.filter(x=>x!==n):[...s,n]);
+  const toggleAdd = n => setToAdd(s=>s.includes(n)?s.filter(x=>x!==n):[...s,n]);
 
-  const stepLabel = {input:"ENTER HOST",probing:"PROBING…",select:"SELECT MODELS",benchmarking:"BENCHMARKING…",results:"REVIEW & ADD"};
+  const steps = {input:"Enter host",probing:"Probing…",select:"Select models",benchmarking:"Benchmarking…",results:"Review & add"};
 
   return (
-    <div className="modal-back" onClick={onClose}>
-      <div className="manual-box" onClick={e=>e.stopPropagation()}>
-
-        {/* Header */}
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
-          <div>
-            <div style={{color:"#4488ff",fontSize:14,fontWeight:700,letterSpacing:2}}>MANUAL ADD</div>
-            <div style={{color:"#333",fontSize:9,letterSpacing:2,marginTop:2}}>{stepLabel[step]}</div>
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-panel" onClick={e=>e.stopPropagation()}>
+        <div style={{padding:"20px 24px",borderBottom:"1px solid var(--gray-200)"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+            <div>
+              <div style={{fontSize:15,fontWeight:600}}>Add host manually</div>
+              <div style={{fontSize:12,color:"var(--gray-500)",marginTop:2}}>{steps[step]}</div>
+            </div>
+            <button className="btn" onClick={onClose} style={{fontSize:12,padding:"4px 10px"}}>Close</button>
           </div>
-          <button className="btn" onClick={onClose} style={{background:"none",border:"1px solid #222",color:"#555",borderRadius:6,padding:"4px 12px",fontSize:11}}>ESC</button>
         </div>
 
-        {/* Step: input */}
-        {(step==="input"||step==="probing") && (
-          <div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 100px",gap:10,marginBottom:14}}>
-              <div>
-                <div style={{color:"#333",fontSize:9,letterSpacing:2,marginBottom:6}}>IP ADDRESS</div>
-                <input type="text" value={ip} onChange={e=>setIp(e.target.value)}
-                  placeholder="203.255.78.58" style={{width:"100%"}}
-                  onKeyDown={e=>e.key==="Enter"&&probe()} />
+        <div style={{padding:"20px 24px"}}>
+
+          {(step==="input"||step==="probing")&&(
+            <div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 110px",gap:10,marginBottom:14}}>
+                <div>
+                  <div className="section-label">IP address</div>
+                  <input type="text" value={ip} onChange={e=>setIp(e.target.value)} placeholder="203.255.78.58" onKeyDown={e=>e.key==="Enter"&&probe()} style={{marginTop:6}}/>
+                </div>
+                <div>
+                  <div className="section-label">Port</div>
+                  <input type="number" value={port} onChange={e=>setPort(e.target.value)} style={{marginTop:6}}/>
+                </div>
               </div>
-              <div>
-                <div style={{color:"#333",fontSize:9,letterSpacing:2,marginBottom:6}}>PORT</div>
-                <input type="number" value={port} onChange={e=>setPort(e.target.value)} style={{width:"100%"}} />
-              </div>
-            </div>
-            {error&&<div style={{color:"#ff4466",fontSize:11,marginBottom:12}}>✗ {error}</div>}
-            <button className="btn" onClick={probe} disabled={!ip||step==="probing"} style={{
-              background:"#4488ff18",border:"1px solid #4488ff44",color:"#4488ff",
-              borderRadius:8,padding:"9px 20px",fontSize:11,letterSpacing:1.5,fontWeight:700,width:"100%",
-            }}>
-              {step==="probing"
-                ? <span style={{animation:"pulse 1s infinite"}}>● PROBING {ip}:{port}…</span>
-                : `▶ PROBE ${ip||"HOST"}`}
-            </button>
-          </div>
-        )}
-
-        {/* Step: select */}
-        {step==="select" && (
-          <div>
-            <div style={{color:"#444",fontSize:11,marginBottom:12}}>
-              {models.length} model(s) found on <span style={{color:"#4488ff"}}>{ip}:{port}</span>
-              {" — "}select which to benchmark:
-            </div>
-            <div style={{border:"1px solid #1a1a2e",borderRadius:8,overflow:"hidden",marginBottom:14}}>
-              {models.length===0
-                ? <div style={{padding:20,textAlign:"center",color:"#333",fontSize:11}}>No models found</div>
-                : models.map(m=>(
-                  <label key={m.name} className="check-row" style={{borderBottom:"1px solid #0f0f1a"}}>
-                    <input type="checkbox" checked={selected.includes(m.name)} onChange={()=>toggleSel(m.name)} />
-                    <div style={{flex:1}}>
-                      <div style={{color:"#d0d0e0",fontSize:12}}>{m.name}</div>
-                      <div style={{color:"#333",fontSize:9,marginTop:1}}>
-                        {m.size?(m.size/1e9).toFixed(1)+"GB":"—"}
-                      </div>
-                    </div>
-                  </label>
-                ))
-              }
-            </div>
-            <div style={{display:"flex",gap:8}}>
-              <button className="btn" onClick={()=>setStep("input")} style={{background:"transparent",border:"1px solid #333",color:"#555",borderRadius:8,padding:"8px 16px",fontSize:11}}>← BACK</button>
-              <button className="btn" onClick={()=>setSelected(models.map(m=>m.name))} style={{background:"transparent",border:"1px solid #333",color:"#555",borderRadius:8,padding:"8px 16px",fontSize:11}}>SELECT ALL</button>
-              <button className="btn" onClick={benchmark} disabled={!selected.length} style={{
-                flex:1,background:"#4488ff18",border:"1px solid #4488ff44",color:selected.length?"#4488ff":"#333",
-                borderRadius:8,padding:"9px 20px",fontSize:11,letterSpacing:1.5,fontWeight:700,
-              }}>▶ BENCHMARK {selected.length} MODEL(S)</button>
-            </div>
-          </div>
-        )}
-
-        {/* Step: benchmarking */}
-        {step==="benchmarking" && (
-          <div style={{textAlign:"center",padding:"30px 0"}}>
-            <div style={{color:"#4488ff",fontSize:13,marginBottom:10,animation:"pulse 1.5s infinite"}}>
-              ● BENCHMARKING {selected.length} MODEL(S)
-            </div>
-            <div style={{color:"#333",fontSize:11}}>Running 3 rounds each — this may take a while…</div>
-          </div>
-        )}
-
-        {/* Step: results */}
-        {step==="results" && (
-          <div>
-            <div style={{color:"#444",fontSize:11,marginBottom:12}}>
-              Benchmark complete — select which models to add to LiteLLM:
-            </div>
-            <div style={{border:"1px solid #1a1a2e",borderRadius:8,overflow:"hidden",marginBottom:14}}>
-              {benchRes.map(r=>(
-                <label key={r.model} className="check-row" style={{
-                  borderBottom:"1px solid #0f0f1a",
-                  background: r.ok?"#00ff8804":"#ff446604",
-                  opacity: r.ok?1:0.6,
-                }}>
-                  <input type="checkbox"
-                    checked={toAdd.includes(r.model)}
-                    onChange={()=>r.ok&&toggleAdd(r.model)}
-                    disabled={!r.ok} />
-                  <div style={{flex:1}}>
-                    <div style={{display:"flex",alignItems:"center",gap:8}}>
-                      <span style={{color:"#d0d0e0",fontSize:12}}>{r.model}</span>
-                      {r.ok
-                        ? <span style={{color:"#00ff88",fontSize:9}}>✓ PASS</span>
-                        : <span style={{color:"#ff4466",fontSize:9}}>✗ FAIL</span>}
-                    </div>
-                    {r.ok
-                      ? <div style={{color:"#444",fontSize:10,marginTop:2}}>
-                          TTFT {r.ttft?.toFixed(2)}s · TPS {r.tps?.toFixed(1)} · "{r.response?.slice(0,60)}…"
-                        </div>
-                      : <div style={{color:"#ff4466",fontSize:10,marginTop:2}}>{r.error}</div>
-                    }
-                  </div>
-                  {r.ok&&<div style={{textAlign:"right"}}>
-                    <div style={{color:r.tps>=8?"#00ff88":"#ffaa00",fontSize:14,fontWeight:700,fontFamily:"'Orbitron',monospace"}}>{r.tps?.toFixed(1)}</div>
-                    <div style={{color:"#333",fontSize:8}}>TPS</div>
-                  </div>}
-                </label>
-              ))}
-            </div>
-            <div style={{display:"flex",gap:8}}>
-              <button className="btn" onClick={()=>setStep("select")} style={{background:"transparent",border:"1px solid #333",color:"#555",borderRadius:8,padding:"8px 16px",fontSize:11}}>← BACK</button>
-              <button className="btn" onClick={addSelected} disabled={!toAdd.length||adding} style={{
-                flex:1,background:toAdd.length?"#00ff8818":"transparent",
-                border:`1px solid ${toAdd.length?"#00ff8844":"#333"}`,
-                color:toAdd.length?"#00ff88":"#333",
-                borderRadius:8,padding:"9px 20px",fontSize:11,letterSpacing:1.5,fontWeight:700,
-              }}>
-                {adding
-                  ? <span style={{animation:"pulse 1s infinite"}}>● ADDING…</span>
-                  : `✓ ADD ${toAdd.length} MODEL(S) TO LITELLM`}
+              {error&&<div style={{color:"var(--red-600)",fontSize:12,marginBottom:12,padding:"8px 12px",background:"var(--red-50)",borderRadius:"var(--radius-md)"}}>✗ {error}</div>}
+              <button className="btn btn-primary" onClick={probe} disabled={!ip||step==="probing"} style={{width:"100%",justifyContent:"center"}}>
+                {step==="probing"?<span style={{animation:"pulse 1s infinite"}}>Probing {ip}:{port}…</span>:`Probe ${ip||"host"}`}
               </button>
             </div>
-          </div>
-        )}
+          )}
+
+          {step==="select"&&(
+            <div>
+              <div style={{fontSize:13,color:"var(--gray-500)",marginBottom:12}}>
+                {models.length} model{models.length!==1?"s":""} found on <strong style={{color:"var(--gray-900)"}}>{ip}:{port}</strong>
+              </div>
+              <div className="card" style={{marginBottom:14,overflow:"hidden"}}>
+                {models.length===0
+                  ?<div style={{padding:20,textAlign:"center",color:"var(--gray-400)",fontSize:13}}>No models found</div>
+                  :models.map(m=>(
+                    <label key={m.name} className="check-item" style={{cursor:"pointer"}}>
+                      <input type="checkbox" checked={selected.includes(m.name)} onChange={()=>toggleSel(m.name)} style={{marginTop:2}}/>
+                      <div style={{flex:1}}>
+                        <div style={{fontSize:13,fontWeight:500}}>{m.name}</div>
+                        <div style={{fontSize:11,color:"var(--gray-400)",marginTop:1}}>{m.size?(m.size/1e9).toFixed(1)+" GB":"—"}</div>
+                      </div>
+                    </label>
+                  ))
+                }
+              </div>
+              <div style={{display:"flex",gap:8}}>
+                <button className="btn" onClick={()=>setStep("input")}>← Back</button>
+                <button className="btn" onClick={()=>setSelected(models.map(m=>m.name))}>Select all</button>
+                <button className="btn btn-primary" onClick={benchmark} disabled={!selected.length} style={{flex:1,justifyContent:"center"}}>
+                  Benchmark {selected.length} model{selected.length!==1?"s":""}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {step==="benchmarking"&&(
+            <div style={{textAlign:"center",padding:"32px 0"}}>
+              <div style={{width:32,height:32,border:"2px solid var(--blue-200)",borderTopColor:"var(--blue-600)",borderRadius:"50%",animation:"spin 0.8s linear infinite",margin:"0 auto 16px"}}/>
+              <div style={{fontSize:14,fontWeight:500,marginBottom:6}}>Benchmarking {selected.length} model{selected.length!==1?"s":""}…</div>
+              <div style={{fontSize:12,color:"var(--gray-400)"}}>3 runs each — this may take a minute</div>
+            </div>
+          )}
+
+          {step==="results"&&(
+            <div>
+              <div style={{fontSize:13,color:"var(--gray-500)",marginBottom:12}}>Select which models to add to LiteLLM:</div>
+              <div className="card" style={{marginBottom:14,overflow:"hidden"}}>
+                {benchRes.map(r=>(
+                  <label key={r.model} className="check-item" style={{cursor:r.ok?"pointer":"default",opacity:r.ok?1:0.55}}>
+                    <input type="checkbox" checked={toAdd.includes(r.model)} onChange={()=>r.ok&&toggleAdd(r.model)} disabled={!r.ok} style={{marginTop:2}}/>
+                    <div style={{flex:1}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:3}}>
+                        <span style={{fontSize:13,fontWeight:500}}>{r.model}</span>
+                        <span className={`pill ${r.ok?"pill-green":"pill-red"}`}>{r.ok?"Pass":"Fail"}</span>
+                      </div>
+                      {r.ok
+                        ?<div style={{fontSize:11,color:"var(--gray-500)"}}>TTFT {r.ttft?.toFixed(2)}s · {r.tps?.toFixed(1)} TPS · "{r.response?.slice(0,55)}…"</div>
+                        :<div style={{fontSize:11,color:"var(--red-600)"}}>{r.error}</div>
+                      }
+                    </div>
+                    {r.ok&&<div style={{textAlign:"right",minWidth:44}}>
+                      <div style={{fontSize:15,fontWeight:600,color:r.tps>=8?"var(--green-600)":"var(--amber-600)"}}>{r.tps?.toFixed(1)}</div>
+                      <div style={{fontSize:10,color:"var(--gray-400)"}}>TPS</div>
+                    </div>}
+                  </label>
+                ))}
+              </div>
+              <div style={{display:"flex",gap:8}}>
+                <button className="btn" onClick={()=>setStep("select")}>← Back</button>
+                <button className="btn btn-success" onClick={addSelected} disabled={!toAdd.length||adding} style={{flex:1,justifyContent:"center"}}>
+                  {adding?<span style={{animation:"pulse 1s infinite"}}>Adding…</span>:`Add ${toAdd.length} model${toAdd.length!==1?"s":""} to LiteLLM`}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
 }
 
-/* ── Scan Log ── */
 function ScanLog({ lines, scanning }) {
   const ref = useRef(null);
   useEffect(()=>{ if(ref.current) ref.current.scrollTop=ref.current.scrollHeight; },[lines]);
-  const cls = l => /Step \d/.test(l)?"head":/✓|PASS|Added|complete/.test(l)?"ok":/✗|FAIL|error|Error/.test(l)?"err":/^  /.test(l)?"dim":"";
+  const cls = l => /Step \d/.test(l)?"log-head":/[✓]|PASS|Added|complete/.test(l)?"log-ok":/[✗]|FAIL|error|Error/.test(l)?"log-err":/^  /.test(l)?"log-dim":"log-normal";
   return (
-    <div ref={ref} style={{flex:1,overflowY:"auto",padding:"12px 14px",maxHeight:360,minHeight:100}}>
+    <div ref={ref} className="log-area" style={{flex:1,overflowY:"auto",padding:"12px 16px",maxHeight:320,minHeight:80}}>
       {lines.length===0
-        ?<><div className="log-line dim">› Awaiting scan…</div><div className="log-line dim">› Click RUN SCAN to start</div></>
-        :lines.map((l,i)=><div key={i} className={`log-line ${cls(l)}`}>{l||"\u00a0"}</div>)
+        ?<><div className="log-dim">Awaiting scan…</div><div className="log-dim">Click Run scan to start</div></>
+        :lines.map((l,i)=><div key={i} className={cls(l)}>{l||"\u00a0"}</div>)
       }
-      {scanning&&<span style={{animation:"blink 1s infinite",color:"#00ff88"}}>█</span>}
+      {scanning&&<span className="log-ok" style={{animation:"blink 1s infinite"}}>▌</span>}
     </div>
   );
 }
 
-/* ── Main App ── */
 function App() {
   const [data,       setData]      = useState(EMPTY);
   const [selected,   setSelected]  = useState(null);
   const [showManual, setShowManual]= useState(false);
   const [filter,     setFilter]    = useState("all");
   const [sort,       setSort]      = useState("tps");
-  const [animIn,     setAnimIn]    = useState(false);
   const [error,      setError]     = useState(null);
   const pollRef = useRef(null);
 
   const fetchData = useCallback(async () => {
     try {
       const r = await fetch("/api/results");
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      if (!r.ok) throw new Error();
       setData(await r.json()); setError(null);
-    } catch(e) { setError("Backend nicht erreichbar"); }
+    } catch { setError("Backend unreachable"); }
   },[]);
 
   useEffect(()=>{
-    setTimeout(()=>setAnimIn(true),80);
     fetchData();
     pollRef.current = setInterval(fetchData,4000);
-    return ()=>clearInterval(pollRef.current);
+    return()=>clearInterval(pollRef.current);
   },[]);
 
   const triggerScan = async () => {
@@ -373,10 +412,10 @@ function App() {
       clearInterval(pollRef.current);
       pollRef.current = setInterval(fetchData,1500);
       fetchData();
-    } catch(e) { setError(`Scan fehlgeschlagen: ${e.message}`); }
+    } catch(e) { setError(`Scan failed: ${e.message}`); }
   };
 
-  const candidates = (data.candidates||[])
+  const rows = (data.candidates||[])
     .filter(c=>filter==="all"||c.status===filter)
     .sort((a,b)=>{
       if(sort==="tps")    return (b.tps||0)-(a.tps||0);
@@ -389,129 +428,156 @@ function App() {
   const failed = (data.candidates||[]).filter(c=>c.status==="failed").length;
   const logLines = Array.isArray(data.log)?data.log:(data.log||"").split("\n");
 
+  const cols = "28px 1fr 120px 80px 60px 80px";
+
   return (
-    <div style={{minHeight:"100vh",padding:"20px 24px",background:"#070711",
-      backgroundImage:"radial-gradient(ellipse at 15% 15%,#00ff881a 0%,transparent 45%),radial-gradient(ellipse at 85% 85%,#0044ff0c 0%,transparent 45%)",
-      opacity:animIn?1:0,transition:"opacity 0.45s ease"}}>
+    <div style={{minHeight:"100vh",background:"var(--gray-50)",padding:"24px 28px"}}>
 
       {/* Header */}
-      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:20}}>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:24}}>
         <div>
-          <div style={{fontFamily:"'Orbitron',monospace",fontSize:20,fontWeight:900,color:"#00ff88",letterSpacing:4,textShadow:"0 0 24px #00ff8855"}}>
-            OLLAMA<span style={{color:"#fff"}}>SCOUT</span>
-          </div>
-          <div style={{color:"#2a2a3a",fontSize:9,letterSpacing:3,marginTop:2}}>SHODAN → BENCHMARK → LITELLM</div>
+          <div style={{fontSize:20,fontWeight:600,letterSpacing:"-0.3px"}}>OllamaScout</div>
+          <div style={{fontSize:12,color:"var(--gray-400)",marginTop:2}}>Shodan → benchmark → LiteLLM</div>
         </div>
-        <div style={{display:"flex",alignItems:"center",gap:10}}>
-          {error&&<span style={{color:"#ff4466",fontSize:10,animation:"pulse 2s infinite"}}>{error}</span>}
-          {data.lastScan&&<div style={{textAlign:"right"}}>
-            <div style={{color:"#222",fontSize:9,letterSpacing:1}}>LAST SCAN</div>
-            <div style={{color:"#444",fontSize:10}}>{new Date(data.lastScan).toLocaleString("de-DE")}</div>
-          </div>}
-          <button className="btn" onClick={()=>setShowManual(true)} style={{
-            background:"#4488ff18",border:"1px solid #4488ff44",color:"#4488ff",
-            borderRadius:8,padding:"9px 16px",fontSize:11,letterSpacing:1,fontWeight:700,
-          }}>+ MANUAL</button>
-          <button className="btn" onClick={triggerScan} disabled={data.scanning} style={{
-            background:data.scanning?"#0d0d1a":"#00ff8818",
-            border:`1px solid ${data.scanning?"#222":"#00ff8844"}`,
-            color:data.scanning?"#444":"#00ff88",
-            borderRadius:8,padding:"9px 20px",fontSize:11,letterSpacing:1.5,fontWeight:700,
-          }}>
-            {data.scanning?<span style={{animation:"pulse 1s infinite"}}>● SCANNING…</span>:"▶ RUN SCAN"}
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
+          {error&&<span style={{fontSize:12,color:"var(--red-600)",animation:"pulse 2s infinite"}}>{error}</span>}
+          {data.lastScan&&(
+            <span style={{fontSize:12,color:"var(--gray-400)"}}>
+              Last scan {new Date(data.lastScan).toLocaleString("de-DE")}
+            </span>
+          )}
+          <button className="btn" onClick={()=>setShowManual(true)}>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+            Add manually
+          </button>
+          <button className="btn btn-primary" onClick={triggerScan} disabled={data.scanning}>
+            {data.scanning
+              ?<><span style={{width:10,height:10,borderRadius:"50%",background:"rgba(255,255,255,0.6)",display:"inline-block",animation:"pulse 1s infinite"}}/>Scanning…</>
+              :<><svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M3 2l11 6-11 6V2z"/></svg>Run scan</>
+            }
           </button>
         </div>
       </div>
 
       {/* Stats */}
-      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:16}} className="fade-up">
-        {[["HOSTS SCANNED",data.hostsScanned||0,"#4488ff"],["CANDIDATES",(data.candidates||[]).length,"#ffaa00"],["ADDED TO LITELLM",added,"#00ff88"],["FAILED BENCHMARK",failed,"#ff4466"]].map(([label,val,color])=>(
-          <div key={label} style={{background:"#0a0a18",border:`1px solid ${color}18`,borderLeft:`3px solid ${color}`,borderRadius:10,padding:"12px 16px"}}>
-            <div style={{color:"#333",fontSize:8,letterSpacing:2,marginBottom:4}}>{label}</div>
-            <div style={{color,fontSize:28,fontWeight:900,fontFamily:"'Orbitron',monospace",textShadow:`0 0 12px ${color}44`}}>{val}</div>
-          </div>
-        ))}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginBottom:20}}>
+        <StatCard label="Hosts scanned"    value={data.hostsScanned||0}              color="blue"/>
+        <StatCard label="Candidates"       value={(data.candidates||[]).length}       color="amber"/>
+        <StatCard label="Added to LiteLLM" value={added}                             color="green"/>
+        <StatCard label="Failed benchmark" value={failed}                            color="red"/>
       </div>
 
-      {/* Main grid */}
-      <div style={{display:"grid",gridTemplateColumns:"1fr 300px",gap:14}}>
+      {/* Main layout */}
+      <div style={{display:"grid",gridTemplateColumns:"1fr 280px",gap:16}}>
+
         {/* Table */}
-        <div style={{background:"#09091a",border:"1px solid #12122a",borderRadius:12,overflow:"hidden"}}>
-          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"9px 14px",borderBottom:"1px solid #12122a",background:"#0b0b1e"}}>
-            <div style={{display:"flex",gap:5}}>
+        <div className="card" style={{overflow:"hidden"}}>
+          {/* Controls */}
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 16px",borderBottom:"1px solid var(--gray-100)"}}>
+            <div style={{display:"flex",gap:4}}>
               {["all","added","failed"].map(f=>(
-                <button key={f} className="pill" onClick={()=>setFilter(f)} style={{background:filter===f?"#00ff8814":"transparent",border:`1px solid ${filter===f?"#00ff8844":"#1a1a2e"}`,color:filter===f?"#00ff88":"#444",borderRadius:5,padding:"3px 11px",fontSize:9,letterSpacing:1.5,textTransform:"uppercase"}}>{f}</button>
+                <button key={f} onClick={()=>setFilter(f)} style={{
+                  padding:"4px 12px",borderRadius:99,border:"none",cursor:"pointer",
+                  fontSize:12,fontWeight:500,fontFamily:"inherit",
+                  background:filter===f?"var(--gray-900)":"transparent",
+                  color:filter===f?"#fff":"var(--gray-500)",
+                  transition:"all 0.15s",
+                }}>{f.charAt(0).toUpperCase()+f.slice(1)}</button>
               ))}
             </div>
-            <div style={{display:"flex",gap:5,alignItems:"center"}}>
-              <span style={{color:"#222",fontSize:9,letterSpacing:1}}>SORT</span>
+            <div style={{display:"flex",alignItems:"center",gap:6}}>
+              <span style={{fontSize:11,color:"var(--gray-400)"}}>Sort by</span>
               {["tps","ttft","status"].map(s=>(
-                <button key={s} className="pill" onClick={()=>setSort(s)} style={{background:sort===s?"#4488ff14":"transparent",border:`1px solid ${sort===s?"#4488ff44":"#1a1a2e"}`,color:sort===s?"#4488ff":"#444",borderRadius:5,padding:"3px 10px",fontSize:9,letterSpacing:1.5,textTransform:"uppercase"}}>{s}</button>
+                <button key={s} onClick={()=>setSort(s)} style={{
+                  padding:"3px 10px",borderRadius:99,border:"1px solid",cursor:"pointer",
+                  fontSize:11,fontWeight:500,fontFamily:"inherit",
+                  borderColor:sort===s?"var(--blue-500)":"var(--gray-200)",
+                  background:sort===s?"var(--blue-50)":"transparent",
+                  color:sort===s?"var(--blue-700)":"var(--gray-500)",
+                  transition:"all 0.15s",
+                }}>{s.toUpperCase()}</button>
               ))}
             </div>
           </div>
-          <div style={{display:"grid",gridTemplateColumns:"26px 1fr 110px 80px 72px 72px",padding:"7px 14px",borderBottom:"1px solid #0f0f1f",color:"#222",fontSize:8,letterSpacing:2}}>
-            <span>#</span><span>MODEL · HOST</span><span>TPS</span><span>TTFT</span><span>COUNTRY</span><span>STATUS</span>
+
+          {/* Column headers */}
+          <div style={{display:"grid",gridTemplateColumns:cols,padding:"8px 16px",borderBottom:"1px solid var(--gray-100)",fontSize:11,fontWeight:500,color:"var(--gray-400)",letterSpacing:"0.04em",textTransform:"uppercase"}}>
+            <span>#</span><span>Model / host</span><span>TPS</span><span>TTFT</span><span>CC</span><span>Status</span>
           </div>
-          {candidates.length===0
-            ?<div style={{padding:"40px 0",textAlign:"center",fontSize:12,color:"#1a1a2e"}}>
-               {data.scanning?<span style={{color:"#00ff8833",animation:"pulse 1.5s infinite"}}>Scanning…</span>:`No results for "${filter}"`}
+
+          {/* Rows */}
+          {rows.length===0
+            ?<div style={{padding:"48px 0",textAlign:"center",color:"var(--gray-400)",fontSize:13}}>
+               {data.scanning?<span style={{animation:"pulse 1.5s infinite"}}>Scanning…</span>:`No results for "${filter}"`}
              </div>
-            :candidates.map((c,i)=>(
-              <div key={c.id} className="row-item" onClick={()=>setSelected(c)}
-                style={{display:"grid",gridTemplateColumns:"26px 1fr 110px 80px 72px 72px",padding:"9px 14px",borderBottom:"1px solid #0b0b18",borderLeft:"2px solid transparent",background:i%2===0?"#09091a":"#0b0b1e",alignItems:"center",animation:`fadeUp 0.35s ease ${i*0.04}s both`}}>
-                <span style={{color:"#222",fontSize:10}}>{i+1}</span>
+            :rows.map((c,i)=>(
+              <div key={c.id||i} className="table-row" style={{gridTemplateColumns:cols,animation:`fadeIn 0.3s ease ${i*0.03}s both`}}
+                onClick={()=>setSelected(c)}>
+                <span style={{fontSize:11,color:"var(--gray-400)"}}>{i+1}</span>
                 <div>
                   <div style={{display:"flex",alignItems:"center",gap:6}}>
-                    <span style={{color:"#d0d0e0",fontSize:12,fontWeight:500}}>{c.model}</span>
-                    {c.manual&&<span style={{color:"#4488ff",fontSize:8,border:"1px solid #4488ff33",borderRadius:3,padding:"1px 4px"}}>MANUAL</span>}
+                    <span style={{fontWeight:500,fontSize:13}}>{c.model}</span>
+                    {c.manual&&<span className="pill pill-purple" style={{fontSize:10}}>manual</span>}
                   </div>
-                  <div style={{color:"#2a2a3a",fontSize:10,marginTop:1}}>{c.ip}:{c.port} · {(c.org||"").slice(0,22)}</div>
+                  <div style={{fontSize:11,color:"var(--gray-400)",marginTop:1}}>{c.ip}:{c.port} · {(c.org||"").slice(0,24)}</div>
                 </div>
                 <TpsBar value={c.tps||0}/>
-                <span style={{fontSize:12,color:c.ttft<=5?"#00ff88":c.ttft<=8?"#ffaa00":"#ff4466"}}>{c.ttft!=null?`${c.ttft.toFixed(2)}s`:"—"}</span>
-                <span style={{fontSize:13}}>{FLAG[c.country]||"🌐"} <span style={{color:"#444",fontSize:9}}>{c.country}</span></span>
-                <Badge status={c.status}/>
+                <span style={{fontSize:12,fontWeight:500,color:c.ttft<=5?"var(--green-600)":c.ttft<=8?"var(--amber-600)":"var(--red-600)"}}>
+                  {c.ttft!=null?`${c.ttft.toFixed(2)}s`:"—"}
+                </span>
+                <span style={{fontSize:14}}>{FLAG[c.country]||"🌐"}</span>
+                <StatusPill status={c.status} manual={c.manual}/>
               </div>
             ))
           }
         </div>
 
-        {/* Right panel */}
-        <div style={{background:"#09091a",border:"1px solid #12122a",borderRadius:12,overflow:"hidden",display:"flex",flexDirection:"column"}}>
-          <div style={{padding:"9px 14px",borderBottom:"1px solid #12122a",background:"#0b0b1e",display:"flex",justifyContent:"space-between",alignItems:"center",color:"#222",fontSize:8,letterSpacing:2}}>
-            <span>SCAN LOG</span>
-            {data.scanning&&<span style={{color:"#00ff88",animation:"pulse 1s infinite",fontSize:9}}>● LIVE</span>}
-          </div>
-          <ScanLog lines={logLines} scanning={data.scanning}/>
-          <div style={{padding:14,borderTop:"1px solid #0f0f1f"}}>
-            <div style={{color:"#222",fontSize:8,letterSpacing:2,marginBottom:9}}>LITELLM</div>
-            <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:9}}>
-              <div style={{width:6,height:6,borderRadius:"50%",background:"#00ff88",boxShadow:"0 0 7px #00ff88",animation:"glow 2s infinite"}}/>
-              <span style={{color:"#00ff88",fontSize:11}}>{data.litellmUrl||"hanse8.pitago.de"}</span>
+        {/* Right column */}
+        <div style={{display:"flex",flexDirection:"column",gap:12}}>
+
+          {/* Scan log */}
+          <div className="card" style={{display:"flex",flexDirection:"column",flex:1,overflow:"hidden"}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 16px",borderBottom:"1px solid var(--gray-100)"}}>
+              <span style={{fontSize:12,fontWeight:500,color:"var(--gray-500)"}}>Scan log</span>
+              {data.scanning&&<span style={{fontSize:11,color:"var(--green-600)",fontWeight:500,animation:"pulse 1.5s infinite"}}>● Live</span>}
             </div>
-            {(data.candidates||[]).filter(c=>c.status==="added").slice(0,5).map(c=>(
-              <div key={c.id} style={{color:"#1a3a22",fontSize:9,lineHeight:1.9,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>✓ {c.litellmName||c.model}</div>
-            ))}
-            {added>5&&<div style={{color:"#1a3a22",fontSize:9}}>+{added-5} more</div>}
-            {added===0&&<div style={{color:"#1a1a2e",fontSize:9}}>No models registered yet</div>}
+            <ScanLog lines={logLines} scanning={data.scanning}/>
           </div>
-          <div style={{padding:"10px 14px",borderTop:"1px solid #0f0f1f",background:"#07070f"}}>
-            <div style={{color:"#222",fontSize:8,letterSpacing:2,marginBottom:8}}>THRESHOLDS</div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
-              {[["MAX TTFT","5.0s","#ffaa00"],["MIN TPS","8.0","#4488ff"]].map(([l,v,c])=>(
-                <div key={l} style={{background:"#0a0a18",borderRadius:6,padding:"6px 10px"}}>
-                  <div style={{color:"#222",fontSize:7,letterSpacing:1}}>{l}</div>
-                  <div style={{color:c,fontSize:14,fontWeight:700,fontFamily:"'Orbitron',monospace"}}>{v}</div>
+
+          {/* LiteLLM status */}
+          <div className="card" style={{padding:"14px 16px"}}>
+            <div className="section-label" style={{marginBottom:10}}>LiteLLM</div>
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+              <div style={{width:7,height:7,borderRadius:"50%",background:"var(--green-500)",flexShrink:0}}/>
+              <span style={{fontSize:12,fontWeight:500,color:"var(--gray-700)"}}>{data.litellmUrl||"hanse8.pitago.de"}</span>
+            </div>
+            {(data.candidates||[]).filter(c=>c.status==="added").slice(0,6).map((c,i)=>(
+              <div key={i} style={{fontSize:11,color:"var(--gray-500)",lineHeight:1.9,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                <span style={{color:"var(--green-500)",marginRight:4}}>✓</span>{c.litellmName||c.model}
+              </div>
+            ))}
+            {added>6&&<div style={{fontSize:11,color:"var(--gray-400)",marginTop:2}}>+{added-6} more</div>}
+            {added===0&&<div style={{fontSize:11,color:"var(--gray-400)"}}>No models registered yet</div>}
+          </div>
+
+          {/* Thresholds */}
+          <div className="card" style={{padding:"14px 16px"}}>
+            <div className="section-label" style={{marginBottom:10}}>Thresholds</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+              {[["Max TTFT","5.0 s","var(--amber-600)"],["Min TPS","8.0","var(--blue-600)"]].map(([l,v,c])=>(
+                <div key={l} style={{background:"var(--gray-50)",borderRadius:"var(--radius-md)",padding:"8px 10px"}}>
+                  <div className="section-label" style={{marginBottom:3}}>{l}</div>
+                  <div style={{fontSize:16,fontWeight:600,color:c}}>{v}</div>
                 </div>
               ))}
             </div>
           </div>
+
         </div>
       </div>
 
-      <div style={{marginTop:14,color:"#111622",fontSize:8,letterSpacing:2,textAlign:"center"}}>
-        OLLAMA SCOUT v1.0 · CONNECTASSET · CLICK ROW FOR DETAILS · AUTO-REFRESH 4s
+      <div style={{marginTop:16,fontSize:11,color:"var(--gray-300)",textAlign:"center"}}>
+        OllamaScout v1.0 · ConnectAsset · Click row for details · Auto-refresh 4s
       </div>
 
       {selected&&<DetailModal c={selected} onClose={()=>setSelected(null)}/>}
