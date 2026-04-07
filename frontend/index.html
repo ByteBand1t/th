@@ -11,315 +11,341 @@
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body, #root { height: 100%; }
-body {
-  font-family: 'Inter', system-ui, sans-serif;
-  font-size: 14px;
-  line-height: 1.5;
-  background: #f8f9fb;
-  color: #111827;
-  -webkit-font-smoothing: antialiased;
-}
+body { font-family: 'Inter', system-ui, sans-serif; font-size: 14px; line-height: 1.5; background: #f8f9fb; color: #111827; -webkit-font-smoothing: antialiased; }
 :root {
-  --white: #ffffff;
-  --gray-50: #f8f9fb;
-  --gray-100: #f1f3f6;
-  --gray-200: #e5e8ef;
-  --gray-300: #d1d5de;
-  --gray-400: #9ca3b0;
-  --gray-500: #6b7280;
-  --gray-700: #374151;
-  --gray-900: #111827;
-  --blue-50: #eff6ff;
-  --blue-100: #dbeafe;
-  --blue-500: #3b82f6;
-  --blue-600: #2563eb;
-  --blue-700: #1d4ed8;
-  --green-50: #f0fdf4;
-  --green-100: #dcfce7;
-  --green-500: #22c55e;
-  --green-600: #16a34a;
-  --green-700: #15803d;
-  --red-50: #fef2f2;
-  --red-100: #fee2e2;
-  --red-500: #ef4444;
-  --red-600: #dc2626;
-  --red-700: #b91c1c;
-  --amber-50: #fffbeb;
-  --amber-100: #fef3c7;
-  --amber-500: #f59e0b;
-  --amber-600: #d97706;
-  --amber-700: #b45309;
-  --purple-50: #faf5ff;
-  --purple-100: #ede9fe;
-  --purple-600: #9333ea;
-  --purple-700: #7c3aed;
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -1px rgba(0,0,0,0.04);
+  --white:#ffffff; --gray-50:#f8f9fb; --gray-100:#f1f3f6; --gray-200:#e5e8ef; --gray-300:#d1d5de; --gray-400:#9ca3b0; --gray-500:#6b7280; --gray-700:#374151; --gray-900:#111827;
+  --blue-50:#eff6ff; --blue-100:#dbeafe; --blue-500:#3b82f6; --blue-600:#2563eb; --blue-700:#1d4ed8;
+  --green-50:#f0fdf4; --green-100:#dcfce7; --green-500:#22c55e; --green-600:#16a34a; --green-700:#15803d;
+  --red-50:#fef2f2; --red-100:#fee2e2; --red-500:#ef4444; --red-600:#dc2626; --red-700:#b91c1c;
+  --amber-50:#fffbeb; --amber-100:#fef3c7; --amber-500:#f59e0b; --amber-600:#d97706; --amber-700:#b45309;
+  --purple-50:#faf5ff; --purple-100:#ede9fe; --purple-600:#9333ea; --purple-700:#7c3aed;
+  --radius-sm:6px; --radius-md:8px; --radius-lg:12px;
+  --shadow-sm:0 1px 2px rgba(0,0,0,0.05); --shadow-md:0 4px 6px -1px rgba(0,0,0,0.07),0 2px 4px -1px rgba(0,0,0,0.04);
 }
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: var(--gray-100); }
-::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 3px; }
-@keyframes fadeIn  { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
-@keyframes pulse   { 0%,100%{opacity:1} 50%{opacity:0.4} }
-@keyframes spin    { to{transform:rotate(360deg)} }
-@keyframes blink   { 0%,49%{opacity:1} 50%,100%{opacity:0} }
-.fade-in { animation: fadeIn 0.3s ease both; }
-.card { background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); }
-.btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: var(--radius-md); border: 1px solid var(--gray-200); background: var(--white); color: var(--gray-700); font-size: 13px; font-weight: 500; font-family: inherit; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
-.btn:hover:not(:disabled) { background: var(--gray-50); border-color: var(--gray-300); }
-.btn:active:not(:disabled) { transform: scale(0.98); }
-.btn:disabled { opacity: 0.45; cursor: not-allowed; }
-.btn-primary { background: var(--blue-600); border-color: var(--blue-600); color: #fff; }
-.btn-primary:hover:not(:disabled) { background: var(--blue-700); border-color: var(--blue-700); }
-.btn-success { background: var(--green-600); border-color: var(--green-600); color: #fff; }
-.btn-success:hover:not(:disabled) { background: var(--green-700); border-color: var(--green-700); }
-.btn-danger  { background: var(--red-600);  border-color: var(--red-600);  color: #fff; }
-input[type=text], input[type=number] {
-  width: 100%; padding: 8px 10px;
-  border: 1px solid var(--gray-200); border-radius: var(--radius-md);
-  font-size: 13px; font-family: inherit; background: var(--white); color: var(--gray-900);
-  outline: none; transition: border-color 0.15s;
-}
-input[type=text]:focus, input[type=number]:focus { border-color: var(--blue-500); box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
-input[type=checkbox] { accent-color: var(--blue-600); width: 15px; height: 15px; cursor: pointer; }
-.pill { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 500; }
-.pill-green  { background: var(--green-100); color: var(--green-700); }
-.pill-red    { background: var(--red-100);   color: var(--red-700); }
-.pill-amber  { background: var(--amber-100); color: var(--amber-700); }
-.pill-blue   { background: var(--blue-100);  color: var(--blue-700); }
-.pill-gray   { background: var(--gray-100);  color: var(--gray-500); }
-.pill-purple { background: var(--purple-100);color: var(--purple-700); }
-.row { display: flex; align-items: center; gap: 8px; }
-.table-row { display: grid; padding: 10px 16px; border-bottom: 1px solid var(--gray-100); align-items: center; font-size: 13px; transition: background 0.1s; cursor: pointer; }
-.table-row:hover { background: var(--gray-50); }
-.table-row:last-child { border-bottom: none; }
-.log-area { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 11px; line-height: 1.7; }
-.log-ok   { color: var(--green-600); }
-.log-err  { color: var(--red-600); }
-.log-head { color: var(--blue-600); font-weight: 600; }
-.log-dim  { color: var(--gray-400); }
-.log-normal { color: var(--gray-700); }
-.modal-overlay { position: fixed; inset: 0; background: rgba(17,24,39,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; animation: fadeIn 0.15s ease; }
-.modal-panel { background: var(--white); border-radius: var(--radius-lg); box-shadow: var(--shadow-md), 0 20px 40px rgba(0,0,0,0.12); width: min(580px, 95vw); max-height: 90vh; overflow-y: auto; animation: fadeIn 0.2s ease; }
-.section-label { font-size: 11px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gray-400); margin-bottom: 6px; }
-.tps-bar-wrap { display: flex; align-items: center; gap: 8px; }
-.tps-bar-bg { height: 4px; width: 72px; background: var(--gray-100); border-radius: 2px; overflow: hidden; }
-.tps-bar-fill { height: 100%; border-radius: 2px; transition: width 0.8s ease; }
-.check-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px; cursor: pointer; transition: background 0.1s; border-bottom: 1px solid var(--gray-100); }
-.check-item:hover { background: var(--gray-50); }
-.check-item:last-child { border-bottom: none; }
+::-webkit-scrollbar{width:5px;height:5px} ::-webkit-scrollbar-track{background:var(--gray-100)} ::-webkit-scrollbar-thumb{background:var(--gray-300);border-radius:3px}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+.fade-in{animation:fadeIn 0.3s ease both}
+.card{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--radius-md);border:1px solid var(--gray-200);background:var(--white);color:var(--gray-700);font-size:13px;font-weight:500;font-family:inherit;cursor:pointer;transition:all 0.15s;white-space:nowrap}
+.btn:hover:not(:disabled){background:var(--gray-50);border-color:var(--gray-300)}
+.btn:active:not(:disabled){transform:scale(0.98)}
+.btn:disabled{opacity:0.45;cursor:not-allowed}
+.btn-primary{background:var(--blue-600);border-color:var(--blue-600);color:#fff}
+.btn-primary:hover:not(:disabled){background:var(--blue-700);border-color:var(--blue-700)}
+.btn-success{background:var(--green-600);border-color:var(--green-600);color:#fff}
+.btn-success:hover:not(:disabled){background:var(--green-700);border-color:var(--green-700)}
+.btn-amber{background:var(--amber-500);border-color:var(--amber-500);color:#fff}
+.btn-amber:hover:not(:disabled){background:var(--amber-600);border-color:var(--amber-600)}
+input[type=text],input[type=number],textarea{width:100%;padding:8px 10px;border:1px solid var(--gray-200);border-radius:var(--radius-md);font-size:13px;font-family:inherit;background:var(--white);color:var(--gray-900);outline:none;transition:border-color 0.15s}
+input[type=text]:focus,input[type=number]:focus,textarea:focus{border-color:var(--blue-500);box-shadow:0 0 0 3px rgba(59,130,246,0.1)}
+textarea{resize:none;line-height:1.5}
+input[type=checkbox]{accent-color:var(--blue-600);width:15px;height:15px;cursor:pointer}
+.pill{display:inline-flex;align-items:center;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:500}
+.pill-green{background:var(--green-100);color:var(--green-700)}
+.pill-red{background:var(--red-100);color:var(--red-700)}
+.pill-amber{background:var(--amber-100);color:var(--amber-700)}
+.pill-blue{background:var(--blue-100);color:var(--blue-700)}
+.pill-gray{background:var(--gray-100);color:var(--gray-500)}
+.pill-purple{background:var(--purple-100);color:var(--purple-700)}
+.table-row{display:grid;padding:10px 16px;border-bottom:1px solid var(--gray-100);align-items:center;font-size:13px;transition:background 0.1s;cursor:pointer}
+.table-row:hover{background:var(--gray-50)}
+.table-row:last-child{border-bottom:none}
+.log-area{font-family:'SF Mono','Fira Code',monospace;font-size:11px;line-height:1.7}
+.log-ok{color:var(--green-600)} .log-err{color:var(--red-600)} .log-head{color:var(--blue-600);font-weight:600} .log-dim{color:var(--gray-400)} .log-normal{color:var(--gray-700)}
+.modal-overlay{position:fixed;inset:0;background:rgba(17,24,39,0.5);display:flex;align-items:center;justify-content:center;z-index:100;animation:fadeIn 0.15s ease}
+.modal-panel{background:var(--white);border-radius:var(--radius-lg);box-shadow:var(--shadow-md),0 20px 40px rgba(0,0,0,0.12);width:min(580px,95vw);max-height:90vh;overflow-y:auto;animation:fadeIn 0.2s ease}
+.modal-wide{background:var(--white);border-radius:var(--radius-lg);box-shadow:var(--shadow-md),0 20px 40px rgba(0,0,0,0.12);width:min(680px,95vw);max-height:92vh;overflow-y:auto;animation:fadeIn 0.2s ease;display:flex;flex-direction:column}
+.section-label{font-size:11px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:var(--gray-400);margin-bottom:6px}
+.tps-bar-wrap{display:flex;align-items:center;gap:8px}
+.tps-bar-bg{height:4px;width:72px;background:var(--gray-100);border-radius:2px;overflow:hidden}
+.tps-bar-fill{height:100%;border-radius:2px;transition:width 0.8s ease}
+.check-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;cursor:pointer;transition:background 0.1s;border-bottom:1px solid var(--gray-100)}
+.check-item:hover{background:var(--gray-50)}
+.check-item:last-child{border-bottom:none}
+.chat-bubble-user{background:var(--blue-600);color:#fff;border-radius:12px 12px 4px 12px;padding:10px 14px;font-size:13px;line-height:1.5;max-width:85%;align-self:flex-end}
+.chat-bubble-ai{background:var(--gray-100);color:var(--gray-900);border-radius:12px 12px 12px 4px;padding:10px 14px;font-size:13px;line-height:1.5;max-width:85%;align-self:flex-start}
+.chat-bubble-err{background:var(--red-50);color:var(--red-700);border-radius:12px;padding:10px 14px;font-size:13px;max-width:85%;align-self:flex-start;border:1px solid var(--red-100)}
 </style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
 const { useState, useEffect, useRef, useCallback } = React;
+const FLAG={DE:"🇩🇪",US:"🇺🇸",NL:"🇳🇱",SG:"🇸🇬",GB:"🇬🇧",FR:"🇫🇷",JP:"🇯🇵",AU:"🇦🇺",CA:"🇨🇦",CN:"🇨🇳",RU:"🇷🇺",CH:"🇨🇭",AT:"🇦🇹",SE:"🇸🇪",FI:"🇫🇮",NO:"🇳🇴"};
+const EMPTY={lastScan:null,scanning:false,hostsScanned:0,candidates:[],log:[]};
 
-const FLAG = {DE:"🇩🇪",US:"🇺🇸",NL:"🇳🇱",SG:"🇸🇬",GB:"🇬🇧",FR:"🇫🇷",JP:"🇯🇵",AU:"🇦🇺",CA:"🇨🇦",CN:"🇨🇳",RU:"🇷🇺",CH:"🇨🇭",AT:"🇦🇹",SE:"🇸🇪",FI:"🇫🇮",NO:"🇳🇴"};
-const EMPTY = { lastScan:null, scanning:false, hostsScanned:0, candidates:[], log:[] };
-
-function TpsBar({ value=0 }) {
-  const pct = Math.min((value/30)*100,100);
-  const color = value>=10?"#16a34a":value>=8?"#2563eb":value>=5?"#d97706":"#dc2626";
-  return (
-    <div className="tps-bar-wrap">
-      <div className="tps-bar-bg">
-        <div className="tps-bar-fill" style={{width:`${pct}%`,background:color}}/>
-      </div>
-      <span style={{fontSize:12,fontWeight:500,color,minWidth:32}}>{(value||0).toFixed(1)}</span>
-    </div>
-  );
+function TpsBar({value=0}){
+  const pct=Math.min((value/30)*100,100);
+  const color=value>=10?"#16a34a":value>=8?"#2563eb":value>=5?"#d97706":"#dc2626";
+  return(<div className="tps-bar-wrap"><div className="tps-bar-bg"><div className="tps-bar-fill" style={{width:`${pct}%`,background:color}}/></div><span style={{fontSize:12,fontWeight:500,color,minWidth:32}}>{(value||0).toFixed(1)}</span></div>);
 }
 
-function StatusPill({ status, manual }) {
-  if (manual && status==="added") return <span className="pill pill-purple">manual</span>;
-  const m = {added:"pill-green",failed:"pill-red",pending:"pill-amber"}[status]||"pill-gray";
-  const l = {added:"Added",failed:"Failed",pending:"Testing…"}[status]||status;
-  return <span className={`pill ${m}`}>{l}</span>;
+function StatusPill({status,manual}){
+  if(manual&&status==="added")return<span className="pill pill-purple">manual</span>;
+  const m={added:"pill-green",failed:"pill-red",pending:"pill-amber"}[status]||"pill-gray";
+  const l={added:"Added",failed:"Failed",pending:"Testing…"}[status]||status;
+  return<span className={`pill ${m}`}>{l}</span>;
 }
 
-function StatCard({ label, value, color }) {
-  const colors = {blue:"#2563eb",green:"#16a34a",red:"#dc2626",amber:"#d97706"};
-  return (
-    <div className="card" style={{padding:"16px 20px"}}>
-      <div className="section-label">{label}</div>
-      <div style={{fontSize:28,fontWeight:600,color:colors[color]||"#111827",marginTop:4}}>{value}</div>
-    </div>
-  );
+function StatCard({label,value,color}){
+  const colors={blue:"#2563eb",green:"#16a34a",red:"#dc2626",amber:"#d97706"};
+  return(<div className="card" style={{padding:"16px 20px"}}><div className="section-label">{label}</div><div style={{fontSize:28,fontWeight:600,color:colors[color]||"#111827",marginTop:4}}>{value}</div></div>);
 }
 
-function DetailModal({ c, onClose }) {
+/* ── Chat Modal ── */
+function ChatModal({c, onClose, onAddAnyway}){
+  const [messages, setMessages]=useState([{role:"ai",text:`Connected to ${c.model} on ${c.ip}:${c.port}. Ask me anything!`}]);
+  const [input,    setInput]   =useState("");
+  const [loading,  setLoading] =useState(false);
+  const [adding,   setAdding]  =useState(false);
+  const endRef=useRef(null);
+
   useEffect(()=>{ const h=e=>e.key==="Escape"&&onClose(); document.addEventListener("keydown",h); return()=>document.removeEventListener("keydown",h); },[]);
-  const ttftOk = c.ttft <= 5;
-  const tpsOk  = c.tps  >= 8;
-  return (
+  useEffect(()=>{ endRef.current?.scrollIntoView({behavior:"smooth"}); },[messages]);
+
+  const send=async()=>{
+    const txt=input.trim(); if(!txt||loading) return;
+    setInput(""); setLoading(true);
+    const history=messages.filter(m=>m.role!=="ai"||messages.indexOf(m)>0).map(m=>({role:m.role==="ai"?"assistant":"user",content:m.text}));
+    setMessages(prev=>[...prev,{role:"user",text:txt}]);
+    try{
+      const r=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ip:c.ip,port:c.port,model:c.model,message:txt,history})});
+      if(!r.ok)throw new Error((await r.json()).detail||"Error");
+      const d=await r.json();
+      setMessages(prev=>[...prev,{role:"ai",text:d.response,elapsed:d.elapsed}]);
+    }catch(e){
+      setMessages(prev=>[...prev,{role:"err",text:e.message}]);
+    }finally{setLoading(false);}
+  };
+
+  const addAnyway=async()=>{
+    setAdding(true);
+    await fetch("/api/add-anyway",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
+      ip:c.ip,port:c.port,model:c.model,
+      ttft:c.ttft||0,tps:c.tps||0,response:c.response||"",
+      org:c.org||"unknown",country:c.country||"??",
+    })});
+    setAdding(false); onAddAnyway(); onClose();
+  };
+
+  return(
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-wide" onClick={e=>e.stopPropagation()}>
+        {/* Header */}
+        <div style={{padding:"16px 20px",borderBottom:"1px solid var(--gray-200)",display:"flex",justifyContent:"space-between",alignItems:"center",flexShrink:0}}>
+          <div>
+            <div style={{fontSize:14,fontWeight:600}}>{c.model}</div>
+            <div style={{fontSize:11,color:"var(--gray-500)",marginTop:1}}>{FLAG[c.country]||"🌐"} {c.ip}:{c.port} · {c.org}</div>
+          </div>
+          <div style={{display:"flex",gap:8,alignItems:"center"}}>
+            {c.status==="failed"&&(
+              <button className="btn btn-amber" onClick={addAnyway} disabled={adding} style={{fontSize:12}}>
+                {adding?<span style={{animation:"pulse 1s infinite"}}>Adding…</span>:"Add anyway"}
+              </button>
+            )}
+            {c.status==="added"&&(
+              <span className="pill pill-green">Already in LiteLLM</span>
+            )}
+            <button className="btn" onClick={onClose} style={{fontSize:12,padding:"4px 10px"}}>Close</button>
+          </div>
+        </div>
+
+        {/* Benchmark summary bar */}
+        <div style={{padding:"10px 20px",borderBottom:"1px solid var(--gray-100)",background:"var(--gray-50)",display:"flex",gap:20,flexShrink:0}}>
+          {[
+            ["TTFT", c.ttft!=null?`${c.ttft.toFixed(2)}s`:"—", c.ttft<=5?"var(--green-600)":"var(--red-600)"],
+            ["TPS",  c.tps!=null?c.tps.toFixed(1):"—",         c.tps>=8?"var(--green-600)":"var(--red-600)"],
+            ["Status", c.status, c.status==="added"?"var(--green-600)":"var(--red-600)"],
+          ].map(([l,v,col])=>(
+            <div key={l}>
+              <div className="section-label" style={{marginBottom:2}}>{l}</div>
+              <div style={{fontSize:13,fontWeight:600,color:col}}>{v}</div>
+            </div>
+          ))}
+          {c.failReason&&<div style={{flex:1}}><div className="section-label" style={{marginBottom:2}}>Fail reason</div><div style={{fontSize:12,color:"var(--red-600)"}}>{c.failReason}</div></div>}
+        </div>
+
+        {/* Chat messages */}
+        <div style={{flex:1,overflowY:"auto",padding:"16px 20px",display:"flex",flexDirection:"column",gap:10,minHeight:280,maxHeight:400}}>
+          {messages.map((m,i)=>(
+            <div key={i} className={m.role==="user"?"chat-bubble-user":m.role==="err"?"chat-bubble-err":"chat-bubble-ai"}>
+              {m.text}
+              {m.elapsed&&<div style={{fontSize:10,opacity:0.6,marginTop:4}}>{m.elapsed}s</div>}
+            </div>
+          ))}
+          {loading&&(
+            <div className="chat-bubble-ai" style={{display:"flex",gap:4,alignItems:"center"}}>
+              <span style={{animation:"blink 1s infinite"}}>●</span>
+              <span style={{animation:"blink 1s infinite 0.3s"}}>●</span>
+              <span style={{animation:"blink 1s infinite 0.6s"}}>●</span>
+            </div>
+          )}
+          <div ref={endRef}/>
+        </div>
+
+        {/* Input */}
+        <div style={{padding:"12px 20px",borderTop:"1px solid var(--gray-200)",display:"flex",gap:8,flexShrink:0}}>
+          <textarea
+            rows={2}
+            value={input}
+            onChange={e=>setInput(e.target.value)}
+            onKeyDown={e=>{ if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send();} }}
+            placeholder="Type a message… (Enter to send, Shift+Enter for newline)"
+            style={{flex:1,resize:"none"}}
+          />
+          <button className="btn btn-primary" onClick={send} disabled={!input.trim()||loading} style={{alignSelf:"flex-end",padding:"8px 16px"}}>
+            Send
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Detail Modal ── */
+function DetailModal({c,onClose,onChat,onAddAnyway}){
+  useEffect(()=>{ const h=e=>e.key==="Escape"&&onClose(); document.addEventListener("keydown",h); return()=>document.removeEventListener("keydown",h); },[]);
+  const [adding,setAdding]=useState(false);
+  const addAnyway=async()=>{
+    setAdding(true);
+    await fetch("/api/add-anyway",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ip:c.ip,port:c.port,model:c.model,ttft:c.ttft||0,tps:c.tps||0,response:c.response||"",org:c.org||"unknown",country:c.country||"??"})});
+    setAdding(false); onAddAnyway(); onClose();
+  };
+  return(
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-panel" onClick={e=>e.stopPropagation()}>
         <div style={{padding:"20px 24px",borderBottom:"1px solid var(--gray-200)"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
             <div>
               <div style={{fontSize:15,fontWeight:600}}>{c.model}</div>
-              <div style={{fontSize:12,color:"var(--gray-500)",marginTop:3}}>
-                {FLAG[c.country]||"🌐"} {c.ip}:{c.port} · {c.org}
-              </div>
+              <div style={{fontSize:12,color:"var(--gray-500)",marginTop:3}}>{FLAG[c.country]||"🌐"} {c.ip}:{c.port} · {c.org}</div>
             </div>
-            <button className="btn" onClick={onClose} style={{fontSize:12,padding:"4px 10px"}}>Close</button>
+            <div style={{display:"flex",gap:6}}>
+              <button className="btn btn-primary" onClick={()=>{onClose();onChat(c);}} style={{fontSize:12}}>
+                💬 Chat
+              </button>
+              <button className="btn" onClick={onClose} style={{fontSize:12,padding:"4px 10px"}}>Close</button>
+            </div>
           </div>
         </div>
         <div style={{padding:"20px 24px"}}>
           <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:20}}>
-            {[
-              ["Time to first token", c.ttft!=null?`${c.ttft.toFixed(2)}s`:"—", ttftOk?"var(--green-600)":"var(--red-600)"],
-              ["Tokens / second",     c.tps !=null?c.tps.toFixed(1):"—",        tpsOk ?"var(--green-600)":"var(--red-600)"],
-              ["Matched pattern",     c.matched||"—", "var(--blue-600)"],
-            ].map(([l,v,col])=>(
+            {[["Time to first token",c.ttft!=null?`${c.ttft.toFixed(2)}s`:"—",c.ttft<=5?"var(--green-600)":"var(--red-600)"],
+              ["Tokens / second",c.tps!=null?c.tps.toFixed(1):"—",c.tps>=8?"var(--green-600)":"var(--red-600)"],
+              ["Matched pattern",c.matched||"—","var(--blue-600)"]].map(([l,v,col])=>(
               <div key={l} style={{background:"var(--gray-50)",borderRadius:"var(--radius-md)",padding:"12px 14px"}}>
                 <div className="section-label">{l}</div>
                 <div style={{fontSize:18,fontWeight:600,color:col,marginTop:4}}>{v}</div>
               </div>
             ))}
           </div>
-          {c.response&&(
-            <div style={{background:"var(--gray-50)",borderRadius:"var(--radius-md)",padding:14,marginBottom:14}}>
-              <div className="section-label">Benchmark response</div>
-              <div style={{fontSize:13,color:"var(--gray-700)",marginTop:6,fontStyle:"italic",lineHeight:1.6}}>"{c.response}"</div>
-            </div>
+          {c.response&&<div style={{background:"var(--gray-50)",borderRadius:"var(--radius-md)",padding:14,marginBottom:14}}>
+            <div className="section-label">Benchmark response</div>
+            <div style={{fontSize:13,color:"var(--gray-700)",marginTop:6,fontStyle:"italic",lineHeight:1.6}}>"{c.response}"</div>
+          </div>}
+          {c.failReason&&<div style={{background:"var(--red-50)",border:"1px solid var(--red-100)",borderRadius:"var(--radius-md)",padding:"10px 14px",marginBottom:12}}>
+            <div style={{color:"var(--red-700)",fontSize:13}}>✗ {c.failReason}</div>
+          </div>}
+          {c.status==="failed"&&(
+            <button className="btn btn-amber" onClick={addAnyway} disabled={adding} style={{width:"100%",justifyContent:"center",marginBottom:10}}>
+              {adding?<span style={{animation:"pulse 1s infinite"}}>Adding…</span>:"Add anyway — ignore benchmark result"}
+            </button>
           )}
-          {c.failReason&&(
-            <div style={{background:"var(--red-50)",border:"1px solid var(--red-100)",borderRadius:"var(--radius-md)",padding:"10px 14px",marginBottom:10}}>
-              <div style={{color:"var(--red-700)",fontSize:13}}>✗ {c.failReason}</div>
-            </div>
-          )}
-          {c.status==="added"&&c.litellmName&&(
-            <div style={{background:"var(--blue-50)",border:"1px solid var(--blue-100)",borderRadius:"var(--radius-md)",padding:"10px 14px"}}>
-              <div className="section-label">LiteLLM model string</div>
-              <code style={{fontSize:12,color:"var(--blue-700)",marginTop:4,display:"block"}}>ollama/{c.model}@{c.ip.replace(/\./g,"-")}</code>
-            </div>
-          )}
+          {c.status==="added"&&c.litellmName&&<div style={{background:"var(--blue-50)",border:"1px solid var(--blue-100)",borderRadius:"var(--radius-md)",padding:"10px 14px"}}>
+            <div className="section-label">LiteLLM model string</div>
+            <code style={{fontSize:12,color:"var(--blue-700)",marginTop:4,display:"block"}}>ollama/{c.model}@{c.ip.replace(/\./g,"-")}</code>
+          </div>}
         </div>
       </div>
     </div>
   );
 }
 
-function ManualModal({ onClose, onAdded }) {
-  const [step,     setStep]    = useState("input");
-  const [ip,       setIp]      = useState("");
-  const [port,     setPort]    = useState(11434);
-  const [models,   setModels]  = useState([]);
-  const [selected, setSelected]= useState([]);
-  const [benchRes, setBenchRes]= useState([]);
-  const [toAdd,    setToAdd]   = useState([]);
-  const [error,    setError]   = useState(null);
-  const [adding,   setAdding]  = useState(false);
-
+/* ── Manual Modal ── */
+function ManualModal({onClose,onAdded}){
+  const [step,setStep]=useState("input");
+  const [ip,setIp]=useState("");
+  const [port,setPort]=useState(11434);
+  const [models,setModels]=useState([]);
+  const [selected,setSelected]=useState([]);
+  const [benchRes,setBenchRes]=useState([]);
+  const [toAdd,setToAdd]=useState([]);
+  const [error,setError]=useState(null);
+  const [adding,setAdding]=useState(false);
   useEffect(()=>{ const h=e=>e.key==="Escape"&&onClose(); document.addEventListener("keydown",h); return()=>document.removeEventListener("keydown",h); },[]);
-
-  const probe = async () => {
-    if (!ip) return;
-    setStep("probing"); setError(null);
-    try {
-      const r = await fetch("/api/probe",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ip,port:Number(port)})});
-      if (!r.ok) { const d=await r.json(); throw new Error(d.detail||"Probe failed"); }
-      const d = await r.json();
-      setModels(d.models); setSelected([]); setStep("select");
-    } catch(e) { setError(e.message); setStep("input"); }
+  const probe=async()=>{
+    if(!ip)return; setStep("probing"); setError(null);
+    try{
+      const r=await fetch("/api/probe",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ip,port:Number(port)})});
+      if(!r.ok){const d=await r.json();throw new Error(d.detail||"Probe failed");}
+      const d=await r.json(); setModels(d.models); setSelected([]); setStep("select");
+    }catch(e){setError(e.message);setStep("input");}
   };
-
-  const benchmark = async () => {
-    if (!selected.length) return;
-    setStep("benchmarking"); setError(null);
-    try {
-      const r = await fetch("/api/benchmark-single",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ip,port:Number(port),models:selected})});
-      if (!r.ok) throw new Error("Benchmark failed");
-      const d = await r.json();
-      setBenchRes(d.results);
-      setToAdd(d.results.filter(r=>r.ok).map(r=>r.model));
-      setStep("results");
-    } catch(e) { setError(e.message); setStep("select"); }
+  const benchmark=async()=>{
+    if(!selected.length)return; setStep("benchmarking"); setError(null);
+    try{
+      const r=await fetch("/api/benchmark-single",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ip,port:Number(port),models:selected})});
+      if(!r.ok)throw new Error("Benchmark failed");
+      const d=await r.json(); setBenchRes(d.results); setToAdd(d.results.filter(r=>r.ok).map(r=>r.model)); setStep("results");
+    }catch(e){setError(e.message);setStep("select");}
   };
-
-  const addSelected = async () => {
+  const addSelected=async()=>{
     setAdding(true);
-    for (const model of toAdd) {
-      const res = benchRes.find(r=>r.model===model);
-      if (!res) continue;
+    for(const model of toAdd){
+      const res=benchRes.find(r=>r.model===model); if(!res)continue;
       await fetch("/api/add-manual",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ip,port:Number(port),model,ttft:res.ttft,tps:res.tps,response:res.response,org:"manual",country:"??"})});
     }
     setAdding(false); onAdded(); onClose();
   };
-
-  const toggleSel = n => setSelected(s=>s.includes(n)?s.filter(x=>x!==n):[...s,n]);
-  const toggleAdd = n => setToAdd(s=>s.includes(n)?s.filter(x=>x!==n):[...s,n]);
-
-  const steps = {input:"Enter host",probing:"Probing…",select:"Select models",benchmarking:"Benchmarking…",results:"Review & add"};
-
-  return (
+  const addFailed=async(model)=>{
+    const res=benchRes.find(r=>r.model===model); if(!res)return;
+    await fetch("/api/add-anyway",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ip,port:Number(port),model,ttft:res.ttft||0,tps:res.tps||0,response:res.response||"",org:"manual",country:"??"})});
+    onAdded();
+  };
+  const toggleSel=n=>setSelected(s=>s.includes(n)?s.filter(x=>x!==n):[...s,n]);
+  const toggleAdd=n=>setToAdd(s=>s.includes(n)?s.filter(x=>x!==n):[...s,n]);
+  const steps={input:"Enter host",probing:"Probing…",select:"Select models",benchmarking:"Benchmarking…",results:"Review & add"};
+  return(
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-panel" onClick={e=>e.stopPropagation()}>
         <div style={{padding:"20px 24px",borderBottom:"1px solid var(--gray-200)"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-            <div>
-              <div style={{fontSize:15,fontWeight:600}}>Add host manually</div>
-              <div style={{fontSize:12,color:"var(--gray-500)",marginTop:2}}>{steps[step]}</div>
-            </div>
+            <div><div style={{fontSize:15,fontWeight:600}}>Add host manually</div><div style={{fontSize:12,color:"var(--gray-500)",marginTop:2}}>{steps[step]}</div></div>
             <button className="btn" onClick={onClose} style={{fontSize:12,padding:"4px 10px"}}>Close</button>
           </div>
         </div>
-
         <div style={{padding:"20px 24px"}}>
-
           {(step==="input"||step==="probing")&&(
             <div>
               <div style={{display:"grid",gridTemplateColumns:"1fr 110px",gap:10,marginBottom:14}}>
-                <div>
-                  <div className="section-label">IP address</div>
-                  <input type="text" value={ip} onChange={e=>setIp(e.target.value)} placeholder="203.255.78.58" onKeyDown={e=>e.key==="Enter"&&probe()} style={{marginTop:6}}/>
-                </div>
-                <div>
-                  <div className="section-label">Port</div>
-                  <input type="number" value={port} onChange={e=>setPort(e.target.value)} style={{marginTop:6}}/>
-                </div>
+                <div><div className="section-label">IP address</div><input type="text" value={ip} onChange={e=>setIp(e.target.value)} placeholder="203.255.78.58" onKeyDown={e=>e.key==="Enter"&&probe()} style={{marginTop:6}}/></div>
+                <div><div className="section-label">Port</div><input type="number" value={port} onChange={e=>setPort(e.target.value)} style={{marginTop:6}}/></div>
               </div>
               {error&&<div style={{color:"var(--red-600)",fontSize:12,marginBottom:12,padding:"8px 12px",background:"var(--red-50)",borderRadius:"var(--radius-md)"}}>✗ {error}</div>}
-              <button className="btn btn-primary" onClick={probe} disabled={!ip||step==="probing"} style={{width:"100%",justifyContent:"center"}}>
-                {step==="probing"?<span style={{animation:"pulse 1s infinite"}}>Probing {ip}:{port}…</span>:`Probe ${ip||"host"}`}
-              </button>
+              <button className="btn btn-primary" onClick={probe} disabled={!ip||step==="probing"} style={{width:"100%",justifyContent:"center"}}>{step==="probing"?<span style={{animation:"pulse 1s infinite"}}>Probing {ip}:{port}…</span>:`Probe ${ip||"host"}`}</button>
             </div>
           )}
-
           {step==="select"&&(
             <div>
-              <div style={{fontSize:13,color:"var(--gray-500)",marginBottom:12}}>
-                {models.length} model{models.length!==1?"s":""} found on <strong style={{color:"var(--gray-900)"}}>{ip}:{port}</strong>
-              </div>
+              <div style={{fontSize:13,color:"var(--gray-500)",marginBottom:12}}>{models.length} model{models.length!==1?"s":""} found on <strong style={{color:"var(--gray-900)"}}>{ip}:{port}</strong></div>
               <div className="card" style={{marginBottom:14,overflow:"hidden"}}>
-                {models.length===0
-                  ?<div style={{padding:20,textAlign:"center",color:"var(--gray-400)",fontSize:13}}>No models found</div>
-                  :models.map(m=>(
-                    <label key={m.name} className="check-item" style={{cursor:"pointer"}}>
-                      <input type="checkbox" checked={selected.includes(m.name)} onChange={()=>toggleSel(m.name)} style={{marginTop:2}}/>
-                      <div style={{flex:1}}>
-                        <div style={{fontSize:13,fontWeight:500}}>{m.name}</div>
-                        <div style={{fontSize:11,color:"var(--gray-400)",marginTop:1}}>{m.size?(m.size/1e9).toFixed(1)+" GB":"—"}</div>
-                      </div>
-                    </label>
-                  ))
-                }
+                {models.length===0?<div style={{padding:20,textAlign:"center",color:"var(--gray-400)",fontSize:13}}>No models found</div>:models.map(m=>(
+                  <label key={m.name} className="check-item" style={{cursor:"pointer"}}>
+                    <input type="checkbox" checked={selected.includes(m.name)} onChange={()=>toggleSel(m.name)} style={{marginTop:2}}/>
+                    <div style={{flex:1}}><div style={{fontSize:13,fontWeight:500}}>{m.name}</div><div style={{fontSize:11,color:"var(--gray-400)",marginTop:1}}>{m.size?(m.size/1e9).toFixed(1)+" GB":"—"}</div></div>
+                  </label>
+                ))}
               </div>
               <div style={{display:"flex",gap:8}}>
                 <button className="btn" onClick={()=>setStep("input")}>← Back</button>
                 <button className="btn" onClick={()=>setSelected(models.map(m=>m.name))}>Select all</button>
-                <button className="btn btn-primary" onClick={benchmark} disabled={!selected.length} style={{flex:1,justifyContent:"center"}}>
-                  Benchmark {selected.length} model{selected.length!==1?"s":""}
-                </button>
+                <button className="btn btn-primary" onClick={benchmark} disabled={!selected.length} style={{flex:1,justifyContent:"center"}}>Benchmark {selected.length} model{selected.length!==1?"s":""}</button>
               </div>
             </div>
           )}
-
           {step==="benchmarking"&&(
             <div style={{textAlign:"center",padding:"32px 0"}}>
               <div style={{width:32,height:32,border:"2px solid var(--blue-200)",borderTopColor:"var(--blue-600)",borderRadius:"50%",animation:"spin 0.8s linear infinite",margin:"0 auto 16px"}}/>
@@ -327,36 +353,28 @@ function ManualModal({ onClose, onAdded }) {
               <div style={{fontSize:12,color:"var(--gray-400)"}}>3 runs each — this may take a minute</div>
             </div>
           )}
-
           {step==="results"&&(
             <div>
-              <div style={{fontSize:13,color:"var(--gray-500)",marginBottom:12}}>Select which models to add to LiteLLM:</div>
+              <div style={{fontSize:13,color:"var(--gray-500)",marginBottom:12}}>Select models to add — failed models can be force-added:</div>
               <div className="card" style={{marginBottom:14,overflow:"hidden"}}>
                 {benchRes.map(r=>(
-                  <label key={r.model} className="check-item" style={{cursor:r.ok?"pointer":"default",opacity:r.ok?1:0.55}}>
-                    <input type="checkbox" checked={toAdd.includes(r.model)} onChange={()=>r.ok&&toggleAdd(r.model)} disabled={!r.ok} style={{marginTop:2}}/>
+                  <div key={r.model} className="check-item" style={{alignItems:"center"}}>
+                    <input type="checkbox" checked={toAdd.includes(r.model)} onChange={()=>r.ok&&toggleAdd(r.model)} disabled={!r.ok} style={{marginTop:0}}/>
                     <div style={{flex:1}}>
-                      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:3}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:2}}>
                         <span style={{fontSize:13,fontWeight:500}}>{r.model}</span>
                         <span className={`pill ${r.ok?"pill-green":"pill-red"}`}>{r.ok?"Pass":"Fail"}</span>
                       </div>
-                      {r.ok
-                        ?<div style={{fontSize:11,color:"var(--gray-500)"}}>TTFT {r.ttft?.toFixed(2)}s · {r.tps?.toFixed(1)} TPS · "{r.response?.slice(0,55)}…"</div>
-                        :<div style={{fontSize:11,color:"var(--red-600)"}}>{r.error}</div>
-                      }
+                      {r.ok?<div style={{fontSize:11,color:"var(--gray-500)"}}>TTFT {r.ttft?.toFixed(2)}s · {r.tps?.toFixed(1)} TPS</div>:<div style={{fontSize:11,color:"var(--red-600)"}}>{r.error}</div>}
                     </div>
-                    {r.ok&&<div style={{textAlign:"right",minWidth:44}}>
-                      <div style={{fontSize:15,fontWeight:600,color:r.tps>=8?"var(--green-600)":"var(--amber-600)"}}>{r.tps?.toFixed(1)}</div>
-                      <div style={{fontSize:10,color:"var(--gray-400)"}}>TPS</div>
-                    </div>}
-                  </label>
+                    {!r.ok&&<button className="btn btn-amber" onClick={()=>addFailed(r.model)} style={{fontSize:11,padding:"4px 10px"}}>Add anyway</button>}
+                    {r.ok&&<div style={{textAlign:"right",minWidth:44}}><div style={{fontSize:15,fontWeight:600,color:r.tps>=8?"var(--green-600)":"var(--amber-600)"}}>{r.tps?.toFixed(1)}</div><div style={{fontSize:10,color:"var(--gray-400)"}}>TPS</div></div>}
+                  </div>
                 ))}
               </div>
               <div style={{display:"flex",gap:8}}>
                 <button className="btn" onClick={()=>setStep("select")}>← Back</button>
-                <button className="btn btn-success" onClick={addSelected} disabled={!toAdd.length||adding} style={{flex:1,justifyContent:"center"}}>
-                  {adding?<span style={{animation:"pulse 1s infinite"}}>Adding…</span>:`Add ${toAdd.length} model${toAdd.length!==1?"s":""} to LiteLLM`}
-                </button>
+                <button className="btn btn-success" onClick={addSelected} disabled={!toAdd.length||adding} style={{flex:1,justifyContent:"center"}}>{adding?<span style={{animation:"pulse 1s infinite"}}>Adding…</span>:`Add ${toAdd.length} model${toAdd.length!==1?"s":""} to LiteLLM`}</button>
               </div>
             </div>
           )}
@@ -366,74 +384,54 @@ function ManualModal({ onClose, onAdded }) {
   );
 }
 
-function ScanLog({ lines, scanning }) {
-  const ref = useRef(null);
-  useEffect(()=>{ if(ref.current) ref.current.scrollTop=ref.current.scrollHeight; },[lines]);
-  const cls = l => /Step \d/.test(l)?"log-head":/[✓]|PASS|Added|complete/.test(l)?"log-ok":/[✗]|FAIL|error|Error/.test(l)?"log-err":/^  /.test(l)?"log-dim":"log-normal";
-  return (
-    <div ref={ref} className="log-area" style={{flex:1,overflowY:"auto",padding:"12px 16px",maxHeight:320,minHeight:80}}>
-      {lines.length===0
-        ?<><div className="log-dim">Awaiting scan…</div><div className="log-dim">Click Run scan to start</div></>
-        :lines.map((l,i)=><div key={i} className={cls(l)}>{l||"\u00a0"}</div>)
-      }
-      {scanning&&<span className="log-ok" style={{animation:"blink 1s infinite"}}>▌</span>}
-    </div>
-  );
+function ScanLog({lines,scanning}){
+  const ref=useRef(null);
+  useEffect(()=>{if(ref.current)ref.current.scrollTop=ref.current.scrollHeight;},[lines]);
+  const cls=l=>/Step \d/.test(l)?"log-head":/[✓]|PASS|Added|complete/.test(l)?"log-ok":/[✗]|FAIL|error|Error/.test(l)?"log-err":/^  /.test(l)?"log-dim":"log-normal";
+  return(<div ref={ref} className="log-area" style={{flex:1,overflowY:"auto",padding:"12px 16px",maxHeight:320,minHeight:80}}>{lines.length===0?<><div className="log-dim">Awaiting scan…</div><div className="log-dim">Click Run scan to start</div></>:lines.map((l,i)=><div key={i} className={cls(l)}>{l||"\u00a0"}</div>)}{scanning&&<span className="log-ok" style={{animation:"blink 1s infinite"}}>▌</span>}</div>);
 }
 
-function App() {
-  const [data,       setData]      = useState(EMPTY);
-  const [selected,   setSelected]  = useState(null);
-  const [showManual, setShowManual]= useState(false);
-  const [filter,     setFilter]    = useState("all");
-  const [sort,       setSort]      = useState("tps");
-  const [error,      setError]     = useState(null);
-  const pollRef = useRef(null);
+function App(){
+  const [data,setData]=useState(EMPTY);
+  const [selected,setSelected]=useState(null);
+  const [chatTarget,setChatTarget]=useState(null);
+  const [showManual,setShowManual]=useState(false);
+  const [filter,setFilter]=useState("all");
+  const [sort,setSort]=useState("tps");
+  const [error,setError]=useState(null);
+  const pollRef=useRef(null);
 
-  const fetchData = useCallback(async () => {
-    try {
-      const r = await fetch("/api/results");
-      if (!r.ok) throw new Error();
-      setData(await r.json()); setError(null);
-    } catch { setError("Backend unreachable"); }
+  const fetchData=useCallback(async()=>{
+    try{const r=await fetch("/api/results");if(!r.ok)throw new Error();setData(await r.json());setError(null);}
+    catch{setError("Backend unreachable");}
   },[]);
 
   useEffect(()=>{
     fetchData();
-    pollRef.current = setInterval(fetchData,4000);
+    pollRef.current=setInterval(fetchData,4000);
     return()=>clearInterval(pollRef.current);
   },[]);
 
-  const triggerScan = async () => {
-    if (data.scanning) return;
-    try {
-      const r = await fetch("/api/scan",{method:"POST"});
-      if (!r.ok) throw new Error(await r.text());
-      clearInterval(pollRef.current);
-      pollRef.current = setInterval(fetchData,1500);
-      fetchData();
-    } catch(e) { setError(`Scan failed: ${e.message}`); }
+  const triggerScan=async()=>{
+    if(data.scanning)return;
+    try{const r=await fetch("/api/scan",{method:"POST"});if(!r.ok)throw new Error(await r.text());clearInterval(pollRef.current);pollRef.current=setInterval(fetchData,1500);fetchData();}
+    catch(e){setError(`Scan failed: ${e.message}`);}
   };
 
-  const rows = (data.candidates||[])
-    .filter(c=>filter==="all"||c.status===filter)
-    .sort((a,b)=>{
-      if(sort==="tps")    return (b.tps||0)-(a.tps||0);
-      if(sort==="ttft")   return (a.ttft||99)-(b.ttft||99);
-      if(sort==="status") return a.status.localeCompare(b.status);
-      return 0;
-    });
+  const rows=(data.candidates||[]).filter(c=>filter==="all"||c.status===filter).sort((a,b)=>{
+    if(sort==="tps")return(b.tps||0)-(a.tps||0);
+    if(sort==="ttft")return(a.ttft||99)-(b.ttft||99);
+    if(sort==="status")return a.status.localeCompare(b.status);
+    return 0;
+  });
 
-  const added  = (data.candidates||[]).filter(c=>c.status==="added").length;
-  const failed = (data.candidates||[]).filter(c=>c.status==="failed").length;
-  const logLines = Array.isArray(data.log)?data.log:(data.log||"").split("\n");
+  const added=(data.candidates||[]).filter(c=>c.status==="added").length;
+  const failed=(data.candidates||[]).filter(c=>c.status==="failed").length;
+  const logLines=Array.isArray(data.log)?data.log:(data.log||"").split("\n");
+  const cols="28px 1fr 120px 80px 60px 80px";
 
-  const cols = "28px 1fr 120px 80px 60px 80px";
-
-  return (
+  return(
     <div style={{minHeight:"100vh",background:"var(--gray-50)",padding:"24px 28px"}}>
-
-      {/* Header */}
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:24}}>
         <div>
           <div style={{fontSize:20,fontWeight:600,letterSpacing:"-0.3px"}}>OllamaScout</div>
@@ -441,78 +439,46 @@ function App() {
         </div>
         <div style={{display:"flex",alignItems:"center",gap:8}}>
           {error&&<span style={{fontSize:12,color:"var(--red-600)",animation:"pulse 2s infinite"}}>{error}</span>}
-          {data.lastScan&&(
-            <span style={{fontSize:12,color:"var(--gray-400)"}}>
-              Last scan {new Date(data.lastScan).toLocaleString("de-DE")}
-            </span>
-          )}
+          {data.lastScan&&<span style={{fontSize:12,color:"var(--gray-400)"}}>Last scan {new Date(data.lastScan).toLocaleString("de-DE")}</span>}
           <button className="btn" onClick={()=>setShowManual(true)}>
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
             Add manually
           </button>
           <button className="btn btn-primary" onClick={triggerScan} disabled={data.scanning}>
-            {data.scanning
-              ?<><span style={{width:10,height:10,borderRadius:"50%",background:"rgba(255,255,255,0.6)",display:"inline-block",animation:"pulse 1s infinite"}}/>Scanning…</>
-              :<><svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M3 2l11 6-11 6V2z"/></svg>Run scan</>
-            }
+            {data.scanning?<><span style={{width:10,height:10,borderRadius:"50%",background:"rgba(255,255,255,0.6)",display:"inline-block",animation:"pulse 1s infinite"}}/>Scanning…</>:<><svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M3 2l11 6-11 6V2z"/></svg>Run scan</>}
           </button>
         </div>
       </div>
 
-      {/* Stats */}
       <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginBottom:20}}>
-        <StatCard label="Hosts scanned"    value={data.hostsScanned||0}              color="blue"/>
-        <StatCard label="Candidates"       value={(data.candidates||[]).length}       color="amber"/>
-        <StatCard label="Added to LiteLLM" value={added}                             color="green"/>
-        <StatCard label="Failed benchmark" value={failed}                            color="red"/>
+        <StatCard label="Hosts scanned" value={data.hostsScanned||0} color="blue"/>
+        <StatCard label="Candidates" value={(data.candidates||[]).length} color="amber"/>
+        <StatCard label="Added to LiteLLM" value={added} color="green"/>
+        <StatCard label="Failed benchmark" value={failed} color="red"/>
       </div>
 
-      {/* Main layout */}
       <div style={{display:"grid",gridTemplateColumns:"1fr 280px",gap:16}}>
-
-        {/* Table */}
         <div className="card" style={{overflow:"hidden"}}>
-          {/* Controls */}
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 16px",borderBottom:"1px solid var(--gray-100)"}}>
             <div style={{display:"flex",gap:4}}>
               {["all","added","failed"].map(f=>(
-                <button key={f} onClick={()=>setFilter(f)} style={{
-                  padding:"4px 12px",borderRadius:99,border:"none",cursor:"pointer",
-                  fontSize:12,fontWeight:500,fontFamily:"inherit",
-                  background:filter===f?"var(--gray-900)":"transparent",
-                  color:filter===f?"#fff":"var(--gray-500)",
-                  transition:"all 0.15s",
-                }}>{f.charAt(0).toUpperCase()+f.slice(1)}</button>
+                <button key={f} onClick={()=>setFilter(f)} style={{padding:"4px 12px",borderRadius:99,border:"none",cursor:"pointer",fontSize:12,fontWeight:500,fontFamily:"inherit",background:filter===f?"var(--gray-900)":"transparent",color:filter===f?"#fff":"var(--gray-500)",transition:"all 0.15s"}}>{f.charAt(0).toUpperCase()+f.slice(1)}</button>
               ))}
             </div>
             <div style={{display:"flex",alignItems:"center",gap:6}}>
               <span style={{fontSize:11,color:"var(--gray-400)"}}>Sort by</span>
               {["tps","ttft","status"].map(s=>(
-                <button key={s} onClick={()=>setSort(s)} style={{
-                  padding:"3px 10px",borderRadius:99,border:"1px solid",cursor:"pointer",
-                  fontSize:11,fontWeight:500,fontFamily:"inherit",
-                  borderColor:sort===s?"var(--blue-500)":"var(--gray-200)",
-                  background:sort===s?"var(--blue-50)":"transparent",
-                  color:sort===s?"var(--blue-700)":"var(--gray-500)",
-                  transition:"all 0.15s",
-                }}>{s.toUpperCase()}</button>
+                <button key={s} onClick={()=>setSort(s)} style={{padding:"3px 10px",borderRadius:99,border:"1px solid",cursor:"pointer",fontSize:11,fontWeight:500,fontFamily:"inherit",borderColor:sort===s?"var(--blue-500)":"var(--gray-200)",background:sort===s?"var(--blue-50)":"transparent",color:sort===s?"var(--blue-700)":"var(--gray-500)",transition:"all 0.15s"}}>{s.toUpperCase()}</button>
               ))}
             </div>
           </div>
-
-          {/* Column headers */}
           <div style={{display:"grid",gridTemplateColumns:cols,padding:"8px 16px",borderBottom:"1px solid var(--gray-100)",fontSize:11,fontWeight:500,color:"var(--gray-400)",letterSpacing:"0.04em",textTransform:"uppercase"}}>
             <span>#</span><span>Model / host</span><span>TPS</span><span>TTFT</span><span>CC</span><span>Status</span>
           </div>
-
-          {/* Rows */}
           {rows.length===0
-            ?<div style={{padding:"48px 0",textAlign:"center",color:"var(--gray-400)",fontSize:13}}>
-               {data.scanning?<span style={{animation:"pulse 1.5s infinite"}}>Scanning…</span>:`No results for "${filter}"`}
-             </div>
+            ?<div style={{padding:"48px 0",textAlign:"center",color:"var(--gray-400)",fontSize:13}}>{data.scanning?<span style={{animation:"pulse 1.5s infinite"}}>Scanning…</span>:`No results for "${filter}"`}</div>
             :rows.map((c,i)=>(
-              <div key={c.id||i} className="table-row" style={{gridTemplateColumns:cols,animation:`fadeIn 0.3s ease ${i*0.03}s both`}}
-                onClick={()=>setSelected(c)}>
+              <div key={c.id||i} className="table-row" style={{gridTemplateColumns:cols,animation:`fadeIn 0.3s ease ${i*0.03}s both`}} onClick={()=>setSelected(c)}>
                 <span style={{fontSize:11,color:"var(--gray-400)"}}>{i+1}</span>
                 <div>
                   <div style={{display:"flex",alignItems:"center",gap:6}}>
@@ -522,9 +488,7 @@ function App() {
                   <div style={{fontSize:11,color:"var(--gray-400)",marginTop:1}}>{c.ip}:{c.port} · {(c.org||"").slice(0,24)}</div>
                 </div>
                 <TpsBar value={c.tps||0}/>
-                <span style={{fontSize:12,fontWeight:500,color:c.ttft<=5?"var(--green-600)":c.ttft<=8?"var(--amber-600)":"var(--red-600)"}}>
-                  {c.ttft!=null?`${c.ttft.toFixed(2)}s`:"—"}
-                </span>
+                <span style={{fontSize:12,fontWeight:500,color:c.ttft<=5?"var(--green-600)":c.ttft<=8?"var(--amber-600)":"var(--red-600)"}}>{c.ttft!=null?`${c.ttft.toFixed(2)}s`:"—"}</span>
                 <span style={{fontSize:14}}>{FLAG[c.country]||"🌐"}</span>
                 <StatusPill status={c.status} manual={c.manual}/>
               </div>
@@ -532,10 +496,7 @@ function App() {
           }
         </div>
 
-        {/* Right column */}
         <div style={{display:"flex",flexDirection:"column",gap:12}}>
-
-          {/* Scan log */}
           <div className="card" style={{display:"flex",flexDirection:"column",flex:1,overflow:"hidden"}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 16px",borderBottom:"1px solid var(--gray-100)"}}>
               <span style={{fontSize:12,fontWeight:500,color:"var(--gray-500)"}}>Scan log</span>
@@ -543,8 +504,6 @@ function App() {
             </div>
             <ScanLog lines={logLines} scanning={data.scanning}/>
           </div>
-
-          {/* LiteLLM status */}
           <div className="card" style={{padding:"14px 16px"}}>
             <div className="section-label" style={{marginBottom:10}}>LiteLLM</div>
             <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
@@ -552,15 +511,11 @@ function App() {
               <span style={{fontSize:12,fontWeight:500,color:"var(--gray-700)"}}>{data.litellmUrl||"hanse8.pitago.de"}</span>
             </div>
             {(data.candidates||[]).filter(c=>c.status==="added").slice(0,6).map((c,i)=>(
-              <div key={i} style={{fontSize:11,color:"var(--gray-500)",lineHeight:1.9,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
-                <span style={{color:"var(--green-500)",marginRight:4}}>✓</span>{c.litellmName||c.model}
-              </div>
+              <div key={i} style={{fontSize:11,color:"var(--gray-500)",lineHeight:1.9,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}><span style={{color:"var(--green-500)",marginRight:4}}>✓</span>{c.litellmName||c.model}</div>
             ))}
             {added>6&&<div style={{fontSize:11,color:"var(--gray-400)",marginTop:2}}>+{added-6} more</div>}
             {added===0&&<div style={{fontSize:11,color:"var(--gray-400)"}}>No models registered yet</div>}
           </div>
-
-          {/* Thresholds */}
           <div className="card" style={{padding:"14px 16px"}}>
             <div className="section-label" style={{marginBottom:10}}>Thresholds</div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
@@ -572,15 +527,13 @@ function App() {
               ))}
             </div>
           </div>
-
         </div>
       </div>
 
-      <div style={{marginTop:16,fontSize:11,color:"var(--gray-300)",textAlign:"center"}}>
-        OllamaScout v1.0 · ConnectAsset · Click row for details · Auto-refresh 4s
-      </div>
+      <div style={{marginTop:16,fontSize:11,color:"var(--gray-300)",textAlign:"center"}}>OllamaScout v1.0 · ConnectAsset · Click row for details · Auto-refresh 4s</div>
 
-      {selected&&<DetailModal c={selected} onClose={()=>setSelected(null)}/>}
+      {selected&&<DetailModal c={selected} onClose={()=>setSelected(null)} onChat={c=>{setChatTarget(c);}} onAddAnyway={fetchData}/>}
+      {chatTarget&&<ChatModal c={chatTarget} onClose={()=>setChatTarget(null)} onAddAnyway={fetchData}/>}
       {showManual&&<ManualModal onClose={()=>setShowManual(false)} onAdded={fetchData}/>}
     </div>
   );
