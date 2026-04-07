@@ -60,7 +60,13 @@ def main():
     # Step 1 — Shodan
     L("Step 1 — Shodan Discovery")
     sc = cfg["shodan"]
-    hosts = discover_hosts(sc["api_key"], sc["query"], sc.get("max_results", 100), log_fn=L)
+    hosts = discover_hosts(
+        api_key=sc["api_key"],
+        queries=sc.get("queries", sc.get("query", "ollama port:11434")),
+        max_results=sc.get("max_results", 50),
+        exclude_orgs=sc.get("exclude_orgs", []),
+        log_fn=L,
+    )
     results["hostsScanned"] = len(hosts)
     save(results)
 
@@ -102,8 +108,11 @@ def main():
     # Step 4 — LiteLLM
     L("\nStep 4 — LiteLLM Registration")
     lc = cfg["litellm"]
-    mgr = LiteLLMManager(lc["base_url"], lc["master_key"],
-                         cfg.get("litellm_model_tag", "ollama-scout"), log_fn=L)
+    mgr = LiteLLMManager(
+        lc["base_url"], lc["master_key"],
+        cfg.get("litellm_model_tag", "ollama-scout"),
+        log_fn=L,
+    )
     passing = [c for c in candidates if c.benchmark_ok]
     L(f"{len(passing)}/{len(candidates)} passed.")
     for c in passing:
@@ -125,14 +134,4 @@ def main():
             "tps": round(c.tokens_per_second, 1) if c.tokens_per_second else None,
             "response": c.response_text,
             "status": "added" if c.benchmark_ok else "failed",
-            "failReason": c.benchmark_error if not c.benchmark_ok else None,
-            "litellmName": c.litellm_model_name if c.benchmark_ok else None,
-        }
-        for i, c in enumerate(candidates)
-    ]
-    save(results)
-    L("\nScan complete.")
-
-
-if __name__ == "__main__":
-    main()
+            "failReason
