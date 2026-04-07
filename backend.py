@@ -1,7 +1,5 @@
 """
 OllamaScout — backend.py
-FastAPI app: serves the dashboard + scan API.
-Results are stored in /data/results.json (Docker volume).
 """
 from __future__ import annotations
 
@@ -10,11 +8,14 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from typing import List
 
 from fastapi import FastAPI, BackgroundTasks, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
+import httpx
 
 DATA_DIR     = Path("/data")
 RESULTS_FILE = DATA_DIR / "results.json"
@@ -51,7 +52,7 @@ def _run_scan():
         LOCK_FILE.unlink(missing_ok=True)
 
 
-# ── API routes ───────────────────────────────────────────────
+# ── Scan API ─────────────────────────────────────────────────
 
 @app.get("/api/results")
 def get_results():
@@ -95,12 +96,80 @@ def delete_model(model_name: str):
     return {"message": f"Removed {model_name}"}
 
 
-# ── Frontend ─────────────────────────────────────────────────
+# ── Manual Add API ───────────────────────────────────────────
 
-FRONTEND = Path("/app/frontend")
+class ProbeRequest(BaseModel):
+    ip: str
+    port: int = 11434
 
-@app.get("/")
-def serve_index():
-    return FileResponse(str(FRONTEND / "index.html"))
 
-app.mount("/", StaticFiles(directory=str(FRONTEND), html=True), name="frontend")
+class BenchmarkRequest(BaseModel):
+    ip: str
+    port: int
+    models: List[str]
+
+
+class AddRequest(BaseModel):
+    ip: str
+    port: int
+    org: str = "manual"
+    country: str = "??"
+    model: str
+    ttft: float
+    tps: float
+    response: str
+
+
+@app.post("/api/probe")
+def probe_host(req: ProbeRequest):
+    """Check what models are available on a given IP:port."""
+    base_url = f"http://{req.ip}:{req.port}"
+    try:
+        r = httpx.get(f"{base_url}/api/tags", timeout=6.0)
+        r.raise_for_status()
+        models = r.json().get("models", [])
+        return {
+            "ip": req.ip,
+            "port": req.port,
+            "reachable": True,
+            "models": [
+                {
+                    "name": m.get("name", ""),
+                    "size": m.get("size", 0),
+                    "modified_at": m.get("modified_at", ""),
+                }
+                for m in models
+            ],
+        }
+    except httpx.ConnectError:
+        raise HTTPException(status_code=502, detail=f"Cannot connect to {req.ip}:{req.port}")
+    except httpx.TimeoutException:
+        raise HTTPException(status_code=504, detail=f"Timeout connecting to {req.ip}:{req.port}")
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=str(e))
+
+
+@app.post("/api/benchmark-single")
+def benchmark_single(req: BenchmarkRequest):
+    """Benchmark selected models on a given host and return results."""
+    import time
+
+    base_url = f"http://{req.ip}:{req.port}"
+    results  = []
+
+    for model in req.models:
+        ttfts, tpss, last_text = [], [], ""
+        error = None
+
+        for run in range(3):
+            try:
+                payload = {
+                    "model": model,
+                    "prompt": "Hallo, wie geht es dir?",
+                    "stream": True,
+                    "options": {"num_predict": 80},
+                }
+                t0    = time.perf_counter()
+                ttft  = None
+                tokens = 0
+                text   = ""
