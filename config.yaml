@@ -38,7 +38,7 @@ target_models:
   - name: qwen3-coder-next
     min_size_b: 0
   - name: qwen3-coder
-    min_size_b: 27
+    min_size_b: 0
   - name: qwen3
     min_size_b: 27
   - name: qwen2.5-coder
