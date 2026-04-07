@@ -1,46 +1,45 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>OllamaScout</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body, #root { height: 100%; }
-body { font-family: 'Inter', system-ui, sans-serif; font-size: 14px; line-height: 1.5; background: #f8f9fb; color: #111827; -webkit-font-smoothing: antialiased; }
-:root {
-  --white:#ffffff; --gray-50:#f8f9fb; --gray-100:#f1f3f6; --gray-200:#e5e8ef; --gray-300:#d1d5de; --gray-400:#9ca3b0; --gray-500:#6b7280; --gray-700:#374151; --gray-900:#111827;
-  --blue-50:#eff6ff; --blue-100:#dbeafe; --blue-500:#3b82f6; --blue-600:#2563eb; --blue-700:#1d4ed8;
-  --green-50:#f0fdf4; --green-100:#dcfce7; --green-500:#22c55e; --green-600:#16a34a; --green-700:#15803d;
-  --red-50:#fef2f2; --red-100:#fee2e2; --red-500:#ef4444; --red-600:#dc2626; --red-700:#b91c1c;
-  --amber-50:#fffbeb; --amber-100:#fef3c7; --amber-500:#f59e0b; --amber-600:#d97706; --amber-700:#b45309;
-  --purple-50:#faf5ff; --purple-100:#ede9fe; --purple-600:#9333ea; --purple-700:#7c3aed;
-  --radius-sm:6px; --radius-md:8px; --radius-lg:12px;
-  --shadow-sm:0 1px 2px rgba(0,0,0,0.05); --shadow-md:0 4px 6px -1px rgba(0,0,0,0.07),0 2px 4px -1px rgba(0,0,0,0.04);
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body,#root{height:100%}
+body{font-family:'Inter',system-ui,sans-serif;font-size:14px;line-height:1.5;background:#f8f9fb;color:#111827;-webkit-font-smoothing:antialiased}
+:root{
+  --white:#fff;--gray-50:#f8f9fb;--gray-100:#f1f3f6;--gray-200:#e5e8ef;--gray-300:#d1d5de;--gray-400:#9ca3b0;--gray-500:#6b7280;--gray-700:#374151;--gray-900:#111827;
+  --blue-50:#eff6ff;--blue-100:#dbeafe;--blue-500:#3b82f6;--blue-600:#2563eb;--blue-700:#1d4ed8;
+  --green-50:#f0fdf4;--green-100:#dcfce7;--green-500:#22c55e;--green-600:#16a34a;--green-700:#15803d;
+  --red-50:#fef2f2;--red-100:#fee2e2;--red-500:#ef4444;--red-600:#dc2626;--red-700:#b91c1c;
+  --amber-50:#fffbeb;--amber-100:#fef3c7;--amber-500:#f59e0b;--amber-600:#d97706;--amber-700:#b45309;
+  --purple-50:#faf5ff;--purple-100:#ede9fe;--purple-600:#9333ea;--purple-700:#7c3aed;
+  --teal-50:#f0fdfa;--teal-100:#ccfbf1;--teal-600:#0d9488;--teal-700:#0f766e;
+  --radius-md:8px;--radius-lg:12px;
+  --shadow-sm:0 1px 2px rgba(0,0,0,0.05);--shadow-md:0 4px 6px -1px rgba(0,0,0,0.07),0 2px 4px -1px rgba(0,0,0,0.04)
 }
-::-webkit-scrollbar{width:5px;height:5px} ::-webkit-scrollbar-track{background:var(--gray-100)} ::-webkit-scrollbar-thumb{background:var(--gray-300);border-radius:3px}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:var(--gray-100)}::-webkit-scrollbar-thumb{background:var(--gray-300);border-radius:3px}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
-.fade-in{animation:fadeIn 0.3s ease both}
+.fade-in{animation:fadeIn .3s ease both}
 .card{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm)}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--radius-md);border:1px solid var(--gray-200);background:var(--white);color:var(--gray-700);font-size:13px;font-weight:500;font-family:inherit;cursor:pointer;transition:all 0.15s;white-space:nowrap}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--radius-md);border:1px solid var(--gray-200);background:var(--white);color:var(--gray-700);font-size:13px;font-weight:500;font-family:inherit;cursor:pointer;transition:all .15s;white-space:nowrap}
 .btn:hover:not(:disabled){background:var(--gray-50);border-color:var(--gray-300)}
-.btn:active:not(:disabled){transform:scale(0.98)}
-.btn:disabled{opacity:0.45;cursor:not-allowed}
-.btn-primary{background:var(--blue-600);border-color:var(--blue-600);color:#fff}
-.btn-primary:hover:not(:disabled){background:var(--blue-700);border-color:var(--blue-700)}
-.btn-success{background:var(--green-600);border-color:var(--green-600);color:#fff}
-.btn-success:hover:not(:disabled){background:var(--green-700);border-color:var(--green-700)}
-.btn-amber{background:var(--amber-500);border-color:var(--amber-500);color:#fff}
-.btn-amber:hover:not(:disabled){background:var(--amber-600);border-color:var(--amber-600)}
-input[type=text],input[type=number],textarea{width:100%;padding:8px 10px;border:1px solid var(--gray-200);border-radius:var(--radius-md);font-size:13px;font-family:inherit;background:var(--white);color:var(--gray-900);outline:none;transition:border-color 0.15s}
-input[type=text]:focus,input[type=number]:focus,textarea:focus{border-color:var(--blue-500);box-shadow:0 0 0 3px rgba(59,130,246,0.1)}
+.btn:active:not(:disabled){transform:scale(.98)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-primary{background:var(--blue-600);border-color:var(--blue-600);color:#fff}.btn-primary:hover:not(:disabled){background:var(--blue-700);border-color:var(--blue-700)}
+.btn-success{background:var(--green-600);border-color:var(--green-600);color:#fff}.btn-success:hover:not(:disabled){background:var(--green-700);border-color:var(--green-700)}
+.btn-amber{background:var(--amber-500);border-color:var(--amber-500);color:#fff}.btn-amber:hover:not(:disabled){background:var(--amber-600);border-color:var(--amber-600)}
+.btn-red{background:var(--red-600);border-color:var(--red-600);color:#fff}.btn-red:hover:not(:disabled){background:var(--red-700);border-color:var(--red-700)}
+input[type=text],input[type=number],select,textarea{width:100%;padding:8px 10px;border:1px solid var(--gray-200);border-radius:var(--radius-md);font-size:13px;font-family:inherit;background:var(--white);color:var(--gray-900);outline:none;transition:border-color .15s}
+input:focus,select:focus,textarea:focus{border-color:var(--blue-500);box-shadow:0 0 0 3px rgba(59,130,246,.1)}
 textarea{resize:none;line-height:1.5}
 input[type=checkbox]{accent-color:var(--blue-600);width:15px;height:15px;cursor:pointer}
 .pill{display:inline-flex;align-items:center;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:500}
@@ -50,32 +49,40 @@ input[type=checkbox]{accent-color:var(--blue-600);width:15px;height:15px;cursor:
 .pill-blue{background:var(--blue-100);color:var(--blue-700)}
 .pill-gray{background:var(--gray-100);color:var(--gray-500)}
 .pill-purple{background:var(--purple-100);color:var(--purple-700)}
-.table-row{display:grid;padding:10px 16px;border-bottom:1px solid var(--gray-100);align-items:center;font-size:13px;transition:background 0.1s;cursor:pointer}
+.pill-teal{background:var(--teal-100);color:var(--teal-700)}
+.table-row{display:grid;padding:10px 16px;border-bottom:1px solid var(--gray-100);align-items:center;font-size:13px;transition:background .1s;cursor:pointer}
 .table-row:hover{background:var(--gray-50)}
 .table-row:last-child{border-bottom:none}
 .log-area{font-family:'SF Mono','Fira Code',monospace;font-size:11px;line-height:1.7}
-.log-ok{color:var(--green-600)} .log-err{color:var(--red-600)} .log-head{color:var(--blue-600);font-weight:600} .log-dim{color:var(--gray-400)} .log-normal{color:var(--gray-700)}
-.modal-overlay{position:fixed;inset:0;background:rgba(17,24,39,0.5);display:flex;align-items:center;justify-content:center;z-index:100;animation:fadeIn 0.15s ease}
-.modal-panel{background:var(--white);border-radius:var(--radius-lg);box-shadow:var(--shadow-md),0 20px 40px rgba(0,0,0,0.12);width:min(580px,95vw);max-height:90vh;overflow-y:auto;animation:fadeIn 0.2s ease}
-.modal-wide{background:var(--white);border-radius:var(--radius-lg);box-shadow:var(--shadow-md),0 20px 40px rgba(0,0,0,0.12);width:min(680px,95vw);max-height:92vh;overflow-y:auto;animation:fadeIn 0.2s ease;display:flex;flex-direction:column}
-.section-label{font-size:11px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:var(--gray-400);margin-bottom:6px}
+.log-ok{color:var(--green-600)}.log-err{color:var(--red-600)}.log-head{color:var(--blue-600);font-weight:600}.log-dim{color:var(--gray-400)}.log-normal{color:var(--gray-700)}
+.modal-overlay{position:fixed;inset:0;background:rgba(17,24,39,.5);display:flex;align-items:center;justify-content:center;z-index:100;animation:fadeIn .15s ease}
+.modal-panel{background:var(--white);border-radius:var(--radius-lg);box-shadow:var(--shadow-md),0 20px 40px rgba(0,0,0,.12);width:min(580px,95vw);max-height:90vh;overflow-y:auto;animation:fadeIn .2s ease}
+.modal-wide{background:var(--white);border-radius:var(--radius-lg);box-shadow:var(--shadow-md),0 20px 40px rgba(0,0,0,.12);width:min(700px,95vw);max-height:92vh;overflow-y:auto;animation:fadeIn .2s ease;display:flex;flex-direction:column}
+.section-label{font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--gray-400);margin-bottom:6px}
 .tps-bar-wrap{display:flex;align-items:center;gap:8px}
 .tps-bar-bg{height:4px;width:72px;background:var(--gray-100);border-radius:2px;overflow:hidden}
-.tps-bar-fill{height:100%;border-radius:2px;transition:width 0.8s ease}
-.check-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;cursor:pointer;transition:background 0.1s;border-bottom:1px solid var(--gray-100)}
-.check-item:hover{background:var(--gray-50)}
-.check-item:last-child{border-bottom:none}
+.tps-bar-fill{height:100%;border-radius:2px;transition:width .8s ease}
+.check-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;cursor:pointer;transition:background .1s;border-bottom:1px solid var(--gray-100)}
+.check-item:hover{background:var(--gray-50)}.check-item:last-child{border-bottom:none}
 .chat-bubble-user{background:var(--blue-600);color:#fff;border-radius:12px 12px 4px 12px;padding:10px 14px;font-size:13px;line-height:1.5;max-width:85%;align-self:flex-end}
 .chat-bubble-ai{background:var(--gray-100);color:var(--gray-900);border-radius:12px 12px 12px 4px;padding:10px 14px;font-size:13px;line-height:1.5;max-width:85%;align-self:flex-start}
 .chat-bubble-err{background:var(--red-50);color:var(--red-700);border-radius:12px;padding:10px 14px;font-size:13px;max-width:85%;align-self:flex-start;border:1px solid var(--red-100)}
+.toggle-wrap{display:flex;align-items:center;gap:10px;padding:6px 0}
+.toggle{position:relative;width:36px;height:20px;cursor:pointer}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:var(--gray-300);border-radius:20px;transition:.2s}
+.toggle-slider::before{content:"";position:absolute;width:14px;height:14px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
+.toggle input:checked+.toggle-slider{background:var(--blue-600)}
+.toggle input:checked+.toggle-slider::before{transform:translateX(16px)}
 </style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
-const { useState, useEffect, useRef, useCallback } = React;
+const{useState,useEffect,useRef,useCallback}=React;
 const FLAG={DE:"🇩🇪",US:"🇺🇸",NL:"🇳🇱",SG:"🇸🇬",GB:"🇬🇧",FR:"🇫🇷",JP:"🇯🇵",AU:"🇦🇺",CA:"🇨🇦",CN:"🇨🇳",RU:"🇷🇺",CH:"🇨🇭",AT:"🇦🇹",SE:"🇸🇪",FI:"🇫🇮",NO:"🇳🇴"};
-const EMPTY={lastScan:null,scanning:false,hostsScanned:0,candidates:[],log:[]};
+const DAYS=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+const EMPTY={lastScan:null,scanning:false,hostsScanned:0,candidates:[],log:[],health:{lastCheck:null,alive:0,slow:0,dead:0}};
 
 function TpsBar({value=0}){
   const pct=Math.min((value/30)*100,100);
@@ -85,120 +92,244 @@ function TpsBar({value=0}){
 
 function StatusPill({status,manual}){
   if(manual&&status==="added")return<span className="pill pill-purple">manual</span>;
-  const m={added:"pill-green",failed:"pill-red",pending:"pill-amber"}[status]||"pill-gray";
-  const l={added:"Added",failed:"Failed",pending:"Testing…"}[status]||status;
+  const m={added:"pill-green",failed:"pill-red",pending:"pill-amber",slow:"pill-amber",dead:"pill-gray"}[status]||"pill-gray";
+  const l={added:"Added",failed:"Failed",pending:"Testing…",slow:"Slow",dead:"Dead"}[status]||status;
   return<span className={`pill ${m}`}>{l}</span>;
 }
 
-function StatCard({label,value,color}){
-  const colors={blue:"#2563eb",green:"#16a34a",red:"#dc2626",amber:"#d97706"};
-  return(<div className="card" style={{padding:"16px 20px"}}><div className="section-label">{label}</div><div style={{fontSize:28,fontWeight:600,color:colors[color]||"#111827",marginTop:4}}>{value}</div></div>);
+function HealthDot({status}){
+  const c={added:"#22c55e",slow:"#f59e0b",dead:"#ef4444"}[status]||"#d1d5de";
+  return<span title={status} style={{width:8,height:8,borderRadius:"50%",background:c,display:"inline-block",flexShrink:0}}/>;
+}
+
+function StatCard({label,value,color,sub}){
+  const colors={blue:"#2563eb",green:"#16a34a",red:"#dc2626",amber:"#d97706",teal:"#0d9488"};
+  return(<div className="card" style={{padding:"14px 18px"}}><div className="section-label">{label}</div><div style={{fontSize:26,fontWeight:600,color:colors[color]||"#111827",marginTop:3}}>{value}</div>{sub&&<div style={{fontSize:11,color:"var(--gray-400)",marginTop:2}}>{sub}</div>}</div>);
+}
+
+/* ── Settings Modal ── */
+function SettingsModal({onClose,onSaved}){
+  const [sched,   setSched]   = useState(null);
+  const [targets, setTargets] = useState([]);
+  const [newModel,setNewModel]= useState("");
+  const [newSize, setNewSize] = useState(0);
+  const [saving,  setSaving]  = useState(false);
+  const [tab,     setTab]     = useState("schedule");
+
+  useEffect(()=>{
+    Promise.all([fetch("/api/schedule").then(r=>r.json()), fetch("/api/models/targets").then(r=>r.json())])
+      .then(([s,t])=>{ setSched(s); setTargets(t.models||[]); });
+  },[]);
+
+  useEffect(()=>{ const h=e=>e.key==="Escape"&&onClose(); document.addEventListener("keydown",h); return()=>document.removeEventListener("keydown",h); },[]);
+
+  const saveSchedule=async()=>{
+    setSaving(true);
+    await fetch("/api/schedule",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(sched)});
+    setSaving(false); onSaved(); onClose();
+  };
+
+  const addModel=async()=>{
+    if(!newModel.trim())return;
+    await fetch("/api/models/targets",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:newModel.trim(),min_size_b:Number(newSize)})});
+    setTargets(prev=>[...prev,{name:newModel.trim(),min_size_b:Number(newSize),source:"user"}]);
+    setNewModel(""); setNewSize(0);
+  };
+
+  const removeModel=async(name,source)=>{
+    if(source==="config"){alert("Base models from config.yaml cannot be removed here. Edit config.yaml directly.");return;}
+    await fetch(`/api/models/targets/${encodeURIComponent(name)}`,{method:"DELETE"});
+    setTargets(prev=>prev.filter(m=>m.name!==name));
+  };
+
+  if(!sched)return null;
+
+  return(
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-wide" onClick={e=>e.stopPropagation()} style={{maxHeight:"88vh"}}>
+        <div style={{padding:"18px 22px",borderBottom:"1px solid var(--gray-200)",display:"flex",justifyContent:"space-between",alignItems:"center",flexShrink:0}}>
+          <div style={{fontSize:15,fontWeight:600}}>Settings</div>
+          <div style={{display:"flex",gap:8}}>
+            <button className="btn" onClick={onClose} style={{fontSize:12,padding:"4px 10px"}}>Close</button>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div style={{display:"flex",gap:0,borderBottom:"1px solid var(--gray-200)",flexShrink:0}}>
+          {["schedule","models"].map(t=>(
+            <button key={t} onClick={()=>setTab(t)} style={{padding:"10px 20px",border:"none",borderBottom:`2px solid ${tab===t?"var(--blue-600)":"transparent"}`,background:"transparent",cursor:"pointer",fontSize:13,fontWeight:500,fontFamily:"inherit",color:tab===t?"var(--blue-600)":"var(--gray-500)",transition:"all .15s",textTransform:"capitalize"}}>{t==="schedule"?"Schedule":"Target Models"}</button>
+          ))}
+        </div>
+
+        <div style={{padding:"22px",overflowY:"auto",flex:1}}>
+
+          {tab==="schedule"&&sched&&(
+            <div style={{display:"flex",flexDirection:"column",gap:22}}>
+
+              {/* Full scan */}
+              <div className="card" style={{padding:"16px 18px"}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+                  <div><div style={{fontWeight:500,fontSize:14}}>Full scan (Shodan)</div><div style={{fontSize:12,color:"var(--gray-500)",marginTop:2}}>Discovers new hosts via Shodan API — uses credits</div></div>
+                  <label className="toggle"><input type="checkbox" checked={sched.full_scan_enabled} onChange={e=>setSched({...sched,full_scan_enabled:e.target.checked})}/><span className="toggle-slider"/></label>
+                </div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,opacity:sched.full_scan_enabled?1:0.4}}>
+                  <div><div className="section-label">Day of week</div>
+                    <select value={sched.full_scan_weekday} onChange={e=>setSched({...sched,full_scan_weekday:Number(e.target.value)})} style={{marginTop:6}}>
+                      {DAYS.map((d,i)=><option key={i} value={i}>{d}</option>)}
+                    </select>
+                  </div>
+                  <div><div className="section-label">Hour (UTC)</div>
+                    <input type="number" min={0} max={23} value={sched.full_scan_hour} onChange={e=>setSched({...sched,full_scan_hour:Number(e.target.value)})} style={{marginTop:6}}/>
+                  </div>
+                </div>
+                {sched.next_full_scan&&<div style={{fontSize:11,color:"var(--gray-400)",marginTop:10}}>Next run: {new Date(sched.next_full_scan).toLocaleString("de-DE")}</div>}
+                <div style={{fontSize:11,color:"var(--amber-600)",marginTop:6,background:"var(--amber-50)",padding:"6px 10px",borderRadius:"var(--radius-md)"}}>
+                  ⚠ With 100 credits/month and ~15 queries per scan: max ~6 scans/month. Weekly = 4 scans = 60 credits.
+                </div>
+              </div>
+
+              {/* Health check */}
+              <div className="card" style={{padding:"16px 18px"}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+                  <div><div style={{fontWeight:500,fontSize:14}}>Health check</div><div style={{fontSize:12,color:"var(--gray-500)",marginTop:2}}>Probes known models — zero Shodan credits</div></div>
+                  <label className="toggle"><input type="checkbox" checked={sched.health_check_enabled} onChange={e=>setSched({...sched,health_check_enabled:e.target.checked})}/><span className="toggle-slider"/></label>
+                </div>
+                <div style={{opacity:sched.health_check_enabled?1:0.4}}>
+                  <div className="section-label">Interval (hours)</div>
+                  <input type="number" min={1} max={168} value={sched.health_check_interval_hours} onChange={e=>setSched({...sched,health_check_interval_hours:Number(e.target.value)})} style={{marginTop:6}}/>
+                </div>
+                {sched.next_health_check&&<div style={{fontSize:11,color:"var(--gray-400)",marginTop:10}}>Next check: {new Date(sched.next_health_check).toLocaleString("de-DE")}</div>}
+              </div>
+
+              <button className="btn btn-primary" onClick={saveSchedule} disabled={saving} style={{justifyContent:"center"}}>
+                {saving?"Saving…":"Save schedule"}
+              </button>
+            </div>
+          )}
+
+          {tab==="models"&&(
+            <div style={{display:"flex",flexDirection:"column",gap:16}}>
+              <div style={{fontSize:13,color:"var(--gray-500)"}}>
+                These models are searched for during scans. Base models come from <code style={{fontSize:12}}>config.yaml</code>; user models are stored persistently and survive rebuilds.
+              </div>
+
+              {/* Add new */}
+              <div className="card" style={{padding:"14px 16px"}}>
+                <div className="section-label" style={{marginBottom:10}}>Add model pattern</div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 120px auto",gap:8,alignItems:"flex-end"}}>
+                  <div>
+                    <div className="section-label" style={{marginBottom:4}}>Name / pattern</div>
+                    <input type="text" value={newModel} onChange={e=>setNewModel(e.target.value)} placeholder="e.g. gemma5" onKeyDown={e=>e.key==="Enter"&&addModel()}/>
+                  </div>
+                  <div>
+                    <div className="section-label" style={{marginBottom:4}}>Min size (B)</div>
+                    <input type="number" value={newSize} onChange={e=>setNewSize(e.target.value)} placeholder="0 = any"/>
+                  </div>
+                  <button className="btn btn-primary" onClick={addModel} disabled={!newModel.trim()} style={{height:36}}>Add</button>
+                </div>
+              </div>
+
+              {/* List */}
+              <div className="card" style={{overflow:"hidden"}}>
+                <div style={{padding:"8px 16px",borderBottom:"1px solid var(--gray-100)",fontSize:11,fontWeight:500,color:"var(--gray-400)",display:"grid",gridTemplateColumns:"1fr 80px 80px 40px",letterSpacing:"0.04em",textTransform:"uppercase"}}>
+                  <span>Pattern</span><span>Min size</span><span>Source</span><span/>
+                </div>
+                {targets.map(m=>(
+                  <div key={m.name} style={{display:"grid",gridTemplateColumns:"1fr 80px 80px 40px",padding:"10px 16px",borderBottom:"1px solid var(--gray-100)",alignItems:"center",fontSize:13}}>
+                    <span style={{fontWeight:500}}>{m.name}</span>
+                    <span style={{color:"var(--gray-500)"}}>{m.min_size_b>0?`≥${m.min_size_b}B`:"any"}</span>
+                    <span className={`pill ${m.source==="user"?"pill-blue":"pill-gray"}`}>{m.source}</span>
+                    {m.source==="user"
+                      ?<button onClick={()=>removeModel(m.name,m.source)} style={{background:"none",border:"none",cursor:"pointer",color:"var(--red-500)",fontSize:16,padding:0}}>×</button>
+                      :<span style={{color:"var(--gray-300)",textAlign:"center"}}>—</span>
+                    }
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 /* ── Chat Modal ── */
-function ChatModal({c, onClose, onAddAnyway}){
-  const [messages, setMessages]=useState([{role:"ai",text:`Connected to ${c.model} on ${c.ip}:${c.port}. Ask me anything!`}]);
-  const [input,    setInput]   =useState("");
-  const [loading,  setLoading] =useState(false);
-  const [adding,   setAdding]  =useState(false);
+function ChatModal({c,onClose,onAddAnyway}){
+  const [messages,setMessages]=useState([{role:"ai",text:`Connected to ${c.model} on ${c.ip}:${c.port}`}]);
+  const [input,setInput]=useState("");
+  const [loading,setLoading]=useState(false);
+  const [adding,setAdding]=useState(false);
   const endRef=useRef(null);
-
   useEffect(()=>{ const h=e=>e.key==="Escape"&&onClose(); document.addEventListener("keydown",h); return()=>document.removeEventListener("keydown",h); },[]);
   useEffect(()=>{ endRef.current?.scrollIntoView({behavior:"smooth"}); },[messages]);
-
   const send=async()=>{
-    const txt=input.trim(); if(!txt||loading) return;
+    const txt=input.trim(); if(!txt||loading)return;
     setInput(""); setLoading(true);
-    const history=messages.filter(m=>m.role!=="ai"||messages.indexOf(m)>0).map(m=>({role:m.role==="ai"?"assistant":"user",content:m.text}));
+    const history=messages.slice(1).map(m=>({role:m.role==="ai"?"assistant":"user",content:m.text}));
     setMessages(prev=>[...prev,{role:"user",text:txt}]);
     try{
       const r=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ip:c.ip,port:c.port,model:c.model,message:txt,history})});
       if(!r.ok)throw new Error((await r.json()).detail||"Error");
       const d=await r.json();
       setMessages(prev=>[...prev,{role:"ai",text:d.response,elapsed:d.elapsed}]);
-    }catch(e){
-      setMessages(prev=>[...prev,{role:"err",text:e.message}]);
-    }finally{setLoading(false);}
+    }catch(e){ setMessages(prev=>[...prev,{role:"err",text:e.message}]); }
+    finally{ setLoading(false); }
   };
-
   const addAnyway=async()=>{
     setAdding(true);
-    await fetch("/api/add-anyway",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
-      ip:c.ip,port:c.port,model:c.model,
-      ttft:c.ttft||0,tps:c.tps||0,response:c.response||"",
-      org:c.org||"unknown",country:c.country||"??",
-    })});
+    await fetch("/api/add-anyway",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ip:c.ip,port:c.port,model:c.model,ttft:c.ttft||0,tps:c.tps||0,response:c.response||"",org:c.org||"unknown",country:c.country||"??"})});
     setAdding(false); onAddAnyway(); onClose();
   };
-
   return(
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-wide" onClick={e=>e.stopPropagation()}>
-        {/* Header */}
-        <div style={{padding:"16px 20px",borderBottom:"1px solid var(--gray-200)",display:"flex",justifyContent:"space-between",alignItems:"center",flexShrink:0}}>
+        <div style={{padding:"14px 20px",borderBottom:"1px solid var(--gray-200)",display:"flex",justifyContent:"space-between",alignItems:"center",flexShrink:0}}>
           <div>
             <div style={{fontSize:14,fontWeight:600}}>{c.model}</div>
             <div style={{fontSize:11,color:"var(--gray-500)",marginTop:1}}>{FLAG[c.country]||"🌐"} {c.ip}:{c.port} · {c.org}</div>
           </div>
           <div style={{display:"flex",gap:8,alignItems:"center"}}>
-            {c.status==="failed"&&(
+            {(c.status==="failed"||c.status==="slow"||c.status==="dead")&&(
               <button className="btn btn-amber" onClick={addAnyway} disabled={adding} style={{fontSize:12}}>
                 {adding?<span style={{animation:"pulse 1s infinite"}}>Adding…</span>:"Add anyway"}
               </button>
             )}
-            {c.status==="added"&&(
-              <span className="pill pill-green">Already in LiteLLM</span>
-            )}
+            {c.status==="added"&&<span className="pill pill-green">In LiteLLM</span>}
             <button className="btn" onClick={onClose} style={{fontSize:12,padding:"4px 10px"}}>Close</button>
           </div>
         </div>
-
-        {/* Benchmark summary bar */}
-        <div style={{padding:"10px 20px",borderBottom:"1px solid var(--gray-100)",background:"var(--gray-50)",display:"flex",gap:20,flexShrink:0}}>
-          {[
-            ["TTFT", c.ttft!=null?`${c.ttft.toFixed(2)}s`:"—", c.ttft<=5?"var(--green-600)":"var(--red-600)"],
-            ["TPS",  c.tps!=null?c.tps.toFixed(1):"—",         c.tps>=8?"var(--green-600)":"var(--red-600)"],
-            ["Status", c.status, c.status==="added"?"var(--green-600)":"var(--red-600)"],
-          ].map(([l,v,col])=>(
-            <div key={l}>
-              <div className="section-label" style={{marginBottom:2}}>{l}</div>
-              <div style={{fontSize:13,fontWeight:600,color:col}}>{v}</div>
-            </div>
+        {/* Benchmark bar */}
+        <div style={{padding:"8px 20px",borderBottom:"1px solid var(--gray-100)",background:"var(--gray-50)",display:"flex",gap:20,flexShrink:0,flexWrap:"wrap"}}>
+          {[["TTFT",c.ttft!=null?`${c.ttft.toFixed(2)}s`:"—",c.ttft<=5?"var(--green-600)":"var(--red-600)"],
+            ["TPS",c.tps!=null?c.tps.toFixed(1):"—",c.tps>=8?"var(--green-600)":"var(--red-600)"],
+            ["Status",c.status,c.status==="added"?"var(--green-600)":c.status==="slow"?"var(--amber-600)":"var(--red-600)"]].map(([l,v,col])=>(
+            <div key={l}><div className="section-label" style={{marginBottom:1}}>{l}</div><div style={{fontSize:13,fontWeight:600,color:col}}>{v}</div></div>
           ))}
-          {c.failReason&&<div style={{flex:1}}><div className="section-label" style={{marginBottom:2}}>Fail reason</div><div style={{fontSize:12,color:"var(--red-600)"}}>{c.failReason}</div></div>}
+          {(c.failReason||c.deadReason||c.slowReason)&&<div style={{flex:1}}><div className="section-label" style={{marginBottom:1}}>Reason</div><div style={{fontSize:12,color:"var(--red-600)"}}>{c.failReason||c.deadReason||c.slowReason}</div></div>}
         </div>
-
-        {/* Chat messages */}
-        <div style={{flex:1,overflowY:"auto",padding:"16px 20px",display:"flex",flexDirection:"column",gap:10,minHeight:280,maxHeight:400}}>
+        {/* Messages */}
+        <div style={{flex:1,overflowY:"auto",padding:"16px 20px",display:"flex",flexDirection:"column",gap:10,minHeight:240,maxHeight:380}}>
           {messages.map((m,i)=>(
             <div key={i} className={m.role==="user"?"chat-bubble-user":m.role==="err"?"chat-bubble-err":"chat-bubble-ai"}>
               {m.text}
-              {m.elapsed&&<div style={{fontSize:10,opacity:0.6,marginTop:4}}>{m.elapsed}s</div>}
+              {m.elapsed&&<div style={{fontSize:10,opacity:.6,marginTop:4}}>{m.elapsed}s</div>}
             </div>
           ))}
-          {loading&&(
-            <div className="chat-bubble-ai" style={{display:"flex",gap:4,alignItems:"center"}}>
-              <span style={{animation:"blink 1s infinite"}}>●</span>
-              <span style={{animation:"blink 1s infinite 0.3s"}}>●</span>
-              <span style={{animation:"blink 1s infinite 0.6s"}}>●</span>
-            </div>
-          )}
+          {loading&&<div className="chat-bubble-ai" style={{display:"flex",gap:4,alignItems:"center"}}>
+            <span style={{animation:"blink 1s infinite"}}>●</span>
+            <span style={{animation:"blink 1s infinite .3s"}}>●</span>
+            <span style={{animation:"blink 1s infinite .6s"}}>●</span>
+          </div>}
           <div ref={endRef}/>
         </div>
-
         {/* Input */}
         <div style={{padding:"12px 20px",borderTop:"1px solid var(--gray-200)",display:"flex",gap:8,flexShrink:0}}>
-          <textarea
-            rows={2}
-            value={input}
-            onChange={e=>setInput(e.target.value)}
-            onKeyDown={e=>{ if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send();} }}
+          <textarea rows={2} value={input} onChange={e=>setInput(e.target.value)}
+            onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send();}}}
             placeholder="Type a message… (Enter to send, Shift+Enter for newline)"
-            style={{flex:1,resize:"none"}}
-          />
-          <button className="btn btn-primary" onClick={send} disabled={!input.trim()||loading} style={{alignSelf:"flex-end",padding:"8px 16px"}}>
-            Send
-          </button>
+            style={{flex:1,resize:"none"}}/>
+          <button className="btn btn-primary" onClick={send} disabled={!input.trim()||loading} style={{alignSelf:"flex-end"}}>Send</button>
         </div>
       </div>
     </div>
@@ -207,8 +338,8 @@ function ChatModal({c, onClose, onAddAnyway}){
 
 /* ── Detail Modal ── */
 function DetailModal({c,onClose,onChat,onAddAnyway}){
+  const[adding,setAdding]=useState(false);
   useEffect(()=>{ const h=e=>e.key==="Escape"&&onClose(); document.addEventListener("keydown",h); return()=>document.removeEventListener("keydown",h); },[]);
-  const [adding,setAdding]=useState(false);
   const addAnyway=async()=>{
     setAdding(true);
     await fetch("/api/add-anyway",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ip:c.ip,port:c.port,model:c.model,ttft:c.ttft||0,tps:c.tps||0,response:c.response||"",org:c.org||"unknown",country:c.country||"??"})});
@@ -224,34 +355,33 @@ function DetailModal({c,onClose,onChat,onAddAnyway}){
               <div style={{fontSize:12,color:"var(--gray-500)",marginTop:3}}>{FLAG[c.country]||"🌐"} {c.ip}:{c.port} · {c.org}</div>
             </div>
             <div style={{display:"flex",gap:6}}>
-              <button className="btn btn-primary" onClick={()=>{onClose();onChat(c);}} style={{fontSize:12}}>
-                💬 Chat
-              </button>
+              <button className="btn btn-primary" onClick={()=>{onClose();onChat(c);}} style={{fontSize:12}}>💬 Chat</button>
               <button className="btn" onClick={onClose} style={{fontSize:12,padding:"4px 10px"}}>Close</button>
             </div>
           </div>
         </div>
         <div style={{padding:"20px 24px"}}>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:20}}>
-            {[["Time to first token",c.ttft!=null?`${c.ttft.toFixed(2)}s`:"—",c.ttft<=5?"var(--green-600)":"var(--red-600)"],
-              ["Tokens / second",c.tps!=null?c.tps.toFixed(1):"—",c.tps>=8?"var(--green-600)":"var(--red-600)"],
-              ["Matched pattern",c.matched||"—","var(--blue-600)"]].map(([l,v,col])=>(
+          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:16}}>
+            {[["TTFT",c.ttft!=null?`${c.ttft.toFixed(2)}s`:"—",c.ttft<=5?"var(--green-600)":"var(--red-600)"],
+              ["TPS",c.tps!=null?c.tps.toFixed(1):"—",c.tps>=8?"var(--green-600)":"var(--red-600)"],
+              ["Pattern",c.matched||"—","var(--blue-600)"]].map(([l,v,col])=>(
               <div key={l} style={{background:"var(--gray-50)",borderRadius:"var(--radius-md)",padding:"12px 14px"}}>
                 <div className="section-label">{l}</div>
                 <div style={{fontSize:18,fontWeight:600,color:col,marginTop:4}}>{v}</div>
               </div>
             ))}
           </div>
-          {c.response&&<div style={{background:"var(--gray-50)",borderRadius:"var(--radius-md)",padding:14,marginBottom:14}}>
+          {c.lastHealthCheck&&<div style={{fontSize:11,color:"var(--gray-400)",marginBottom:12}}>Last health check: {new Date(c.lastHealthCheck).toLocaleString("de-DE")}</div>}
+          {c.response&&<div style={{background:"var(--gray-50)",borderRadius:"var(--radius-md)",padding:14,marginBottom:12}}>
             <div className="section-label">Benchmark response</div>
             <div style={{fontSize:13,color:"var(--gray-700)",marginTop:6,fontStyle:"italic",lineHeight:1.6}}>"{c.response}"</div>
           </div>}
-          {c.failReason&&<div style={{background:"var(--red-50)",border:"1px solid var(--red-100)",borderRadius:"var(--radius-md)",padding:"10px 14px",marginBottom:12}}>
-            <div style={{color:"var(--red-700)",fontSize:13}}>✗ {c.failReason}</div>
+          {(c.failReason||c.deadReason||c.slowReason)&&<div style={{background:"var(--red-50)",border:"1px solid var(--red-100)",borderRadius:"var(--radius-md)",padding:"10px 14px",marginBottom:12}}>
+            <div style={{color:"var(--red-700)",fontSize:13}}>⚠ {c.failReason||c.deadReason||c.slowReason}</div>
           </div>}
-          {c.status==="failed"&&(
+          {(c.status==="failed"||c.status==="slow"||c.status==="dead")&&(
             <button className="btn btn-amber" onClick={addAnyway} disabled={adding} style={{width:"100%",justifyContent:"center",marginBottom:10}}>
-              {adding?<span style={{animation:"pulse 1s infinite"}}>Adding…</span>:"Add anyway — ignore benchmark result"}
+              {adding?<span style={{animation:"pulse 1s infinite"}}>Adding…</span>:"Add anyway — ignore benchmark"}
             </button>
           )}
           {c.status==="added"&&c.litellmName&&<div style={{background:"var(--blue-50)",border:"1px solid var(--blue-100)",borderRadius:"var(--radius-md)",padding:"10px 14px"}}>
@@ -266,15 +396,11 @@ function DetailModal({c,onClose,onChat,onAddAnyway}){
 
 /* ── Manual Modal ── */
 function ManualModal({onClose,onAdded}){
-  const [step,setStep]=useState("input");
-  const [ip,setIp]=useState("");
-  const [port,setPort]=useState(11434);
-  const [models,setModels]=useState([]);
-  const [selected,setSelected]=useState([]);
-  const [benchRes,setBenchRes]=useState([]);
-  const [toAdd,setToAdd]=useState([]);
-  const [error,setError]=useState(null);
-  const [adding,setAdding]=useState(false);
+  const[step,setStep]=useState("input");
+  const[ip,setIp]=useState("");const[port,setPort]=useState(11434);
+  const[models,setModels]=useState([]);const[selected,setSelected]=useState([]);
+  const[benchRes,setBenchRes]=useState([]);const[toAdd,setToAdd]=useState([]);
+  const[error,setError]=useState(null);const[adding,setAdding]=useState(false);
   useEffect(()=>{ const h=e=>e.key==="Escape"&&onClose(); document.addEventListener("keydown",h); return()=>document.removeEventListener("keydown",h); },[]);
   const probe=async()=>{
     if(!ip)return; setStep("probing"); setError(null);
@@ -311,73 +437,65 @@ function ManualModal({onClose,onAdded}){
   return(
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-panel" onClick={e=>e.stopPropagation()}>
-        <div style={{padding:"20px 24px",borderBottom:"1px solid var(--gray-200)"}}>
+        <div style={{padding:"18px 22px",borderBottom:"1px solid var(--gray-200)"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
             <div><div style={{fontSize:15,fontWeight:600}}>Add host manually</div><div style={{fontSize:12,color:"var(--gray-500)",marginTop:2}}>{steps[step]}</div></div>
             <button className="btn" onClick={onClose} style={{fontSize:12,padding:"4px 10px"}}>Close</button>
           </div>
         </div>
-        <div style={{padding:"20px 24px"}}>
-          {(step==="input"||step==="probing")&&(
-            <div>
-              <div style={{display:"grid",gridTemplateColumns:"1fr 110px",gap:10,marginBottom:14}}>
-                <div><div className="section-label">IP address</div><input type="text" value={ip} onChange={e=>setIp(e.target.value)} placeholder="203.255.78.58" onKeyDown={e=>e.key==="Enter"&&probe()} style={{marginTop:6}}/></div>
-                <div><div className="section-label">Port</div><input type="number" value={port} onChange={e=>setPort(e.target.value)} style={{marginTop:6}}/></div>
-              </div>
-              {error&&<div style={{color:"var(--red-600)",fontSize:12,marginBottom:12,padding:"8px 12px",background:"var(--red-50)",borderRadius:"var(--radius-md)"}}>✗ {error}</div>}
-              <button className="btn btn-primary" onClick={probe} disabled={!ip||step==="probing"} style={{width:"100%",justifyContent:"center"}}>{step==="probing"?<span style={{animation:"pulse 1s infinite"}}>Probing {ip}:{port}…</span>:`Probe ${ip||"host"}`}</button>
+        <div style={{padding:"20px 22px"}}>
+          {(step==="input"||step==="probing")&&(<div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 110px",gap:10,marginBottom:14}}>
+              <div><div className="section-label">IP address</div><input type="text" value={ip} onChange={e=>setIp(e.target.value)} placeholder="203.255.78.58" onKeyDown={e=>e.key==="Enter"&&probe()} style={{marginTop:6}}/></div>
+              <div><div className="section-label">Port</div><input type="number" value={port} onChange={e=>setPort(e.target.value)} style={{marginTop:6}}/></div>
             </div>
-          )}
-          {step==="select"&&(
-            <div>
-              <div style={{fontSize:13,color:"var(--gray-500)",marginBottom:12}}>{models.length} model{models.length!==1?"s":""} found on <strong style={{color:"var(--gray-900)"}}>{ip}:{port}</strong></div>
-              <div className="card" style={{marginBottom:14,overflow:"hidden"}}>
-                {models.length===0?<div style={{padding:20,textAlign:"center",color:"var(--gray-400)",fontSize:13}}>No models found</div>:models.map(m=>(
-                  <label key={m.name} className="check-item" style={{cursor:"pointer"}}>
-                    <input type="checkbox" checked={selected.includes(m.name)} onChange={()=>toggleSel(m.name)} style={{marginTop:2}}/>
-                    <div style={{flex:1}}><div style={{fontSize:13,fontWeight:500}}>{m.name}</div><div style={{fontSize:11,color:"var(--gray-400)",marginTop:1}}>{m.size?(m.size/1e9).toFixed(1)+" GB":"—"}</div></div>
-                  </label>
-                ))}
-              </div>
-              <div style={{display:"flex",gap:8}}>
-                <button className="btn" onClick={()=>setStep("input")}>← Back</button>
-                <button className="btn" onClick={()=>setSelected(models.map(m=>m.name))}>Select all</button>
-                <button className="btn btn-primary" onClick={benchmark} disabled={!selected.length} style={{flex:1,justifyContent:"center"}}>Benchmark {selected.length} model{selected.length!==1?"s":""}</button>
-              </div>
+            {error&&<div style={{color:"var(--red-600)",fontSize:12,marginBottom:12,padding:"8px 12px",background:"var(--red-50)",borderRadius:"var(--radius-md)"}}>✗ {error}</div>}
+            <button className="btn btn-primary" onClick={probe} disabled={!ip||step==="probing"} style={{width:"100%",justifyContent:"center"}}>{step==="probing"?<span style={{animation:"pulse 1s infinite"}}>Probing…</span>:`Probe ${ip||"host"}`}</button>
+          </div>)}
+          {step==="select"&&(<div>
+            <div style={{fontSize:13,color:"var(--gray-500)",marginBottom:12}}>{models.length} model{models.length!==1?"s":""} found on <strong>{ip}:{port}</strong></div>
+            <div className="card" style={{marginBottom:14,overflow:"hidden"}}>
+              {models.length===0?<div style={{padding:20,textAlign:"center",color:"var(--gray-400)",fontSize:13}}>No models found</div>:models.map(m=>(
+                <label key={m.name} className="check-item" style={{cursor:"pointer"}}>
+                  <input type="checkbox" checked={selected.includes(m.name)} onChange={()=>toggleSel(m.name)} style={{marginTop:2}}/>
+                  <div style={{flex:1}}><div style={{fontSize:13,fontWeight:500}}>{m.name}</div><div style={{fontSize:11,color:"var(--gray-400)",marginTop:1}}>{m.size?(m.size/1e9).toFixed(1)+" GB":"—"}</div></div>
+                </label>
+              ))}
             </div>
-          )}
-          {step==="benchmarking"&&(
-            <div style={{textAlign:"center",padding:"32px 0"}}>
-              <div style={{width:32,height:32,border:"2px solid var(--blue-200)",borderTopColor:"var(--blue-600)",borderRadius:"50%",animation:"spin 0.8s linear infinite",margin:"0 auto 16px"}}/>
-              <div style={{fontSize:14,fontWeight:500,marginBottom:6}}>Benchmarking {selected.length} model{selected.length!==1?"s":""}…</div>
-              <div style={{fontSize:12,color:"var(--gray-400)"}}>3 runs each — this may take a minute</div>
+            <div style={{display:"flex",gap:8}}>
+              <button className="btn" onClick={()=>setStep("input")}>← Back</button>
+              <button className="btn" onClick={()=>setSelected(models.map(m=>m.name))}>All</button>
+              <button className="btn btn-primary" onClick={benchmark} disabled={!selected.length} style={{flex:1,justifyContent:"center"}}>Benchmark {selected.length}</button>
             </div>
-          )}
-          {step==="results"&&(
-            <div>
-              <div style={{fontSize:13,color:"var(--gray-500)",marginBottom:12}}>Select models to add — failed models can be force-added:</div>
-              <div className="card" style={{marginBottom:14,overflow:"hidden"}}>
-                {benchRes.map(r=>(
-                  <div key={r.model} className="check-item" style={{alignItems:"center"}}>
-                    <input type="checkbox" checked={toAdd.includes(r.model)} onChange={()=>r.ok&&toggleAdd(r.model)} disabled={!r.ok} style={{marginTop:0}}/>
-                    <div style={{flex:1}}>
-                      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:2}}>
-                        <span style={{fontSize:13,fontWeight:500}}>{r.model}</span>
-                        <span className={`pill ${r.ok?"pill-green":"pill-red"}`}>{r.ok?"Pass":"Fail"}</span>
-                      </div>
-                      {r.ok?<div style={{fontSize:11,color:"var(--gray-500)"}}>TTFT {r.ttft?.toFixed(2)}s · {r.tps?.toFixed(1)} TPS</div>:<div style={{fontSize:11,color:"var(--red-600)"}}>{r.error}</div>}
+          </div>)}
+          {step==="benchmarking"&&(<div style={{textAlign:"center",padding:"32px 0"}}>
+            <div style={{width:32,height:32,border:"2px solid var(--blue-200)",borderTopColor:"var(--blue-600)",borderRadius:"50%",animation:"spin .8s linear infinite",margin:"0 auto 16px"}}/>
+            <div style={{fontSize:14,fontWeight:500,marginBottom:6}}>Benchmarking…</div>
+            <div style={{fontSize:12,color:"var(--gray-400)"}}>3 runs each</div>
+          </div>)}
+          {step==="results"&&(<div>
+            <div style={{fontSize:13,color:"var(--gray-500)",marginBottom:12}}>Select models to add — failed models can be force-added:</div>
+            <div className="card" style={{marginBottom:14,overflow:"hidden"}}>
+              {benchRes.map(r=>(
+                <div key={r.model} className="check-item" style={{alignItems:"center"}}>
+                  <input type="checkbox" checked={toAdd.includes(r.model)} onChange={()=>r.ok&&toggleAdd(r.model)} disabled={!r.ok} style={{marginTop:0}}/>
+                  <div style={{flex:1}}>
+                    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:2}}>
+                      <span style={{fontSize:13,fontWeight:500}}>{r.model}</span>
+                      <span className={`pill ${r.ok?"pill-green":"pill-red"}`}>{r.ok?"Pass":"Fail"}</span>
                     </div>
-                    {!r.ok&&<button className="btn btn-amber" onClick={()=>addFailed(r.model)} style={{fontSize:11,padding:"4px 10px"}}>Add anyway</button>}
-                    {r.ok&&<div style={{textAlign:"right",minWidth:44}}><div style={{fontSize:15,fontWeight:600,color:r.tps>=8?"var(--green-600)":"var(--amber-600)"}}>{r.tps?.toFixed(1)}</div><div style={{fontSize:10,color:"var(--gray-400)"}}>TPS</div></div>}
+                    {r.ok?<div style={{fontSize:11,color:"var(--gray-500)"}}>TTFT {r.ttft?.toFixed(2)}s · {r.tps?.toFixed(1)} TPS</div>:<div style={{fontSize:11,color:"var(--red-600)"}}>{r.error}</div>}
                   </div>
-                ))}
-              </div>
-              <div style={{display:"flex",gap:8}}>
-                <button className="btn" onClick={()=>setStep("select")}>← Back</button>
-                <button className="btn btn-success" onClick={addSelected} disabled={!toAdd.length||adding} style={{flex:1,justifyContent:"center"}}>{adding?<span style={{animation:"pulse 1s infinite"}}>Adding…</span>:`Add ${toAdd.length} model${toAdd.length!==1?"s":""} to LiteLLM`}</button>
-              </div>
+                  {!r.ok?<button className="btn btn-amber" onClick={()=>addFailed(r.model)} style={{fontSize:11,padding:"4px 10px"}}>Add anyway</button>
+                    :<div style={{textAlign:"right",minWidth:44}}><div style={{fontSize:15,fontWeight:600,color:r.tps>=8?"var(--green-600)":"var(--amber-600)"}}>{r.tps?.toFixed(1)}</div><div style={{fontSize:10,color:"var(--gray-400)"}}>TPS</div></div>}
+                </div>
+              ))}
             </div>
-          )}
+            <div style={{display:"flex",gap:8}}>
+              <button className="btn" onClick={()=>setStep("select")}>← Back</button>
+              <button className="btn btn-success" onClick={addSelected} disabled={!toAdd.length||adding} style={{flex:1,justifyContent:"center"}}>{adding?<span style={{animation:"pulse 1s infinite"}}>Adding…</span>:`Add ${toAdd.length} to LiteLLM`}</button>
+            </div>
+          </div>)}
         </div>
       </div>
     </div>
@@ -388,17 +506,19 @@ function ScanLog({lines,scanning}){
   const ref=useRef(null);
   useEffect(()=>{if(ref.current)ref.current.scrollTop=ref.current.scrollHeight;},[lines]);
   const cls=l=>/Step \d/.test(l)?"log-head":/[✓]|PASS|Added|complete/.test(l)?"log-ok":/[✗]|FAIL|error|Error/.test(l)?"log-err":/^  /.test(l)?"log-dim":"log-normal";
-  return(<div ref={ref} className="log-area" style={{flex:1,overflowY:"auto",padding:"12px 16px",maxHeight:320,minHeight:80}}>{lines.length===0?<><div className="log-dim">Awaiting scan…</div><div className="log-dim">Click Run scan to start</div></>:lines.map((l,i)=><div key={i} className={cls(l)}>{l||"\u00a0"}</div>)}{scanning&&<span className="log-ok" style={{animation:"blink 1s infinite"}}>▌</span>}</div>);
+  return(<div ref={ref} className="log-area" style={{flex:1,overflowY:"auto",padding:"12px 16px",maxHeight:280,minHeight:80}}>{lines.length===0?<><div className="log-dim">Awaiting scan…</div><div className="log-dim">Click Run scan to start</div></>:lines.map((l,i)=><div key={i} className={cls(l)}>{l||"\u00a0"}</div>)}{scanning&&<span className="log-ok" style={{animation:"blink 1s infinite"}}>▌</span>}</div>);
 }
 
+/* ── Main App ── */
 function App(){
-  const [data,setData]=useState(EMPTY);
-  const [selected,setSelected]=useState(null);
-  const [chatTarget,setChatTarget]=useState(null);
-  const [showManual,setShowManual]=useState(false);
-  const [filter,setFilter]=useState("all");
-  const [sort,setSort]=useState("tps");
-  const [error,setError]=useState(null);
+  const[data,setData]=useState(EMPTY);
+  const[selected,setSelected]=useState(null);
+  const[chatTarget,setChatTarget]=useState(null);
+  const[showManual,setShowManual]=useState(false);
+  const[showSettings,setShowSettings]=useState(false);
+  const[filter,setFilter]=useState("all");
+  const[sort,setSort]=useState("tps");
+  const[error,setError]=useState(null);
   const pollRef=useRef(null);
 
   const fetchData=useCallback(async()=>{
@@ -406,11 +526,7 @@ function App(){
     catch{setError("Backend unreachable");}
   },[]);
 
-  useEffect(()=>{
-    fetchData();
-    pollRef.current=setInterval(fetchData,4000);
-    return()=>clearInterval(pollRef.current);
-  },[]);
+  useEffect(()=>{ fetchData(); pollRef.current=setInterval(fetchData,4000); return()=>clearInterval(pollRef.current); },[]);
 
   const triggerScan=async()=>{
     if(data.scanning)return;
@@ -418,74 +534,110 @@ function App(){
     catch(e){setError(`Scan failed: ${e.message}`);}
   };
 
-  const rows=(data.candidates||[]).filter(c=>filter==="all"||c.status===filter).sort((a,b)=>{
+  const triggerHealth=async()=>{
+    if(data.healthChecking)return;
+    try{await fetch("/api/health-check",{method:"POST"});clearInterval(pollRef.current);pollRef.current=setInterval(fetchData,2000);fetchData();}
+    catch(e){setError(`Health check failed: ${e.message}`);}
+  };
+
+  const rows=(data.candidates||[]).filter(c=>{
+    if(filter==="all")return true;
+    if(filter==="added")return c.status==="added"||c.status==="slow";
+    if(filter==="failed")return c.status==="failed"||c.status==="dead";
+    return c.status===filter;
+  }).sort((a,b)=>{
     if(sort==="tps")return(b.tps||0)-(a.tps||0);
     if(sort==="ttft")return(a.ttft||99)-(b.ttft||99);
     if(sort==="status")return a.status.localeCompare(b.status);
     return 0;
   });
 
-  const added=(data.candidates||[]).filter(c=>c.status==="added").length;
-  const failed=(data.candidates||[]).filter(c=>c.status==="failed").length;
+  const added  =(data.candidates||[]).filter(c=>c.status==="added").length;
+  const slow   =(data.candidates||[]).filter(c=>c.status==="slow").length;
+  const failed =(data.candidates||[]).filter(c=>c.status==="failed"||c.status==="dead").length;
+  const health = data.health||{};
   const logLines=Array.isArray(data.log)?data.log:(data.log||"").split("\n");
-  const cols="28px 1fr 120px 80px 60px 80px";
+  const sched  = data.schedule||{};
+  const cols   ="28px 1fr 120px 80px 60px 90px";
 
   return(
-    <div style={{minHeight:"100vh",background:"var(--gray-50)",padding:"24px 28px"}}>
-      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:24}}>
+    <div style={{minHeight:"100vh",background:"var(--gray-50)",padding:"20px 24px"}}>
+
+      {/* Header */}
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:20}}>
         <div>
-          <div style={{fontSize:20,fontWeight:600,letterSpacing:"-0.3px"}}>OllamaScout</div>
+          <div style={{fontSize:20,fontWeight:600,letterSpacing:"-.3px"}}>OllamaScout</div>
           <div style={{fontSize:12,color:"var(--gray-400)",marginTop:2}}>Shodan → benchmark → LiteLLM</div>
         </div>
-        <div style={{display:"flex",alignItems:"center",gap:8}}>
+        <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",justifyContent:"flex-end"}}>
           {error&&<span style={{fontSize:12,color:"var(--red-600)",animation:"pulse 2s infinite"}}>{error}</span>}
-          {data.lastScan&&<span style={{fontSize:12,color:"var(--gray-400)"}}>Last scan {new Date(data.lastScan).toLocaleString("de-DE")}</span>}
+          {data.lastScan&&<span style={{fontSize:11,color:"var(--gray-400)"}}>Scan: {new Date(data.lastScan).toLocaleString("de-DE")}</span>}
+          <button className="btn" onClick={()=>setShowSettings(true)} style={{padding:"7px 10px"}} title="Settings">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </button>
           <button className="btn" onClick={()=>setShowManual(true)}>
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
             Add manually
           </button>
+          <button className="btn" onClick={triggerHealth} disabled={data.healthChecking||data.scanning} title="Run health check on all known models">
+            {data.healthChecking?<span style={{animation:"pulse 1s infinite"}}>Checking…</span>:<>❤ Health check</>}
+          </button>
           <button className="btn btn-primary" onClick={triggerScan} disabled={data.scanning}>
-            {data.scanning?<><span style={{width:10,height:10,borderRadius:"50%",background:"rgba(255,255,255,0.6)",display:"inline-block",animation:"pulse 1s infinite"}}/>Scanning…</>:<><svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M3 2l11 6-11 6V2z"/></svg>Run scan</>}
+            {data.scanning?<><span style={{width:10,height:10,borderRadius:"50%",background:"rgba(255,255,255,.6)",display:"inline-block",animation:"pulse 1s infinite"}}/>Scanning…</>:<><svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M3 2l11 6-11 6V2z"/></svg>Run scan</>}
           </button>
         </div>
       </div>
 
-      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginBottom:20}}>
-        <StatCard label="Hosts scanned" value={data.hostsScanned||0} color="blue"/>
-        <StatCard label="Candidates" value={(data.candidates||[]).length} color="amber"/>
-        <StatCard label="Added to LiteLLM" value={added} color="green"/>
-        <StatCard label="Failed benchmark" value={failed} color="red"/>
+      {/* Schedule info bar */}
+      {(sched.next_full_scan||sched.next_health_check)&&(
+        <div style={{background:"var(--blue-50)",border:"1px solid var(--blue-100)",borderRadius:"var(--radius-md)",padding:"8px 14px",marginBottom:16,display:"flex",gap:20,fontSize:12,color:"var(--blue-700)",flexWrap:"wrap"}}>
+          {sched.full_scan_enabled&&sched.next_full_scan&&<span>📅 Next full scan: <strong>{new Date(sched.next_full_scan).toLocaleString("de-DE")}</strong></span>}
+          {sched.health_check_enabled&&sched.next_health_check&&<span>❤ Next health check: <strong>{new Date(sched.next_health_check).toLocaleString("de-DE")}</strong></span>}
+        </div>
+      )}
+
+      {/* Stats */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:10,marginBottom:18}}>
+        <StatCard label="Hosts scanned"    value={data.hostsScanned||0}             color="blue"/>
+        <StatCard label="Candidates"       value={(data.candidates||[]).length}      color="amber"/>
+        <StatCard label="Active in LiteLLM" value={added+(slow||0)}                 color="green" sub={slow?`${slow} slow`:""}/>
+        <StatCard label="Failed / dead"    value={failed}                           color="red"/>
+        <StatCard label="Last health check" value={health.lastCheck?`${health.alive||0}✓ ${health.slow||0}⚠ ${health.dead||0}✗`:"—"} color="teal" sub={health.lastCheck?new Date(health.lastCheck).toLocaleTimeString("de-DE"):"Never run"}/>
       </div>
 
-      <div style={{display:"grid",gridTemplateColumns:"1fr 280px",gap:16}}>
+      {/* Main grid */}
+      <div style={{display:"grid",gridTemplateColumns:"1fr 280px",gap:14}}>
+
+        {/* Table */}
         <div className="card" style={{overflow:"hidden"}}>
-          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 16px",borderBottom:"1px solid var(--gray-100)"}}>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"9px 14px",borderBottom:"1px solid var(--gray-100)"}}>
             <div style={{display:"flex",gap:4}}>
               {["all","added","failed"].map(f=>(
-                <button key={f} onClick={()=>setFilter(f)} style={{padding:"4px 12px",borderRadius:99,border:"none",cursor:"pointer",fontSize:12,fontWeight:500,fontFamily:"inherit",background:filter===f?"var(--gray-900)":"transparent",color:filter===f?"#fff":"var(--gray-500)",transition:"all 0.15s"}}>{f.charAt(0).toUpperCase()+f.slice(1)}</button>
+                <button key={f} onClick={()=>setFilter(f)} style={{padding:"4px 12px",borderRadius:99,border:"none",cursor:"pointer",fontSize:12,fontWeight:500,fontFamily:"inherit",background:filter===f?"var(--gray-900)":"transparent",color:filter===f?"#fff":"var(--gray-500)",transition:"all .15s"}}>{f.charAt(0).toUpperCase()+f.slice(1)}</button>
               ))}
             </div>
-            <div style={{display:"flex",alignItems:"center",gap:6}}>
-              <span style={{fontSize:11,color:"var(--gray-400)"}}>Sort by</span>
+            <div style={{display:"flex",gap:5,alignItems:"center"}}>
+              <span style={{fontSize:11,color:"var(--gray-400)"}}>Sort</span>
               {["tps","ttft","status"].map(s=>(
-                <button key={s} onClick={()=>setSort(s)} style={{padding:"3px 10px",borderRadius:99,border:"1px solid",cursor:"pointer",fontSize:11,fontWeight:500,fontFamily:"inherit",borderColor:sort===s?"var(--blue-500)":"var(--gray-200)",background:sort===s?"var(--blue-50)":"transparent",color:sort===s?"var(--blue-700)":"var(--gray-500)",transition:"all 0.15s"}}>{s.toUpperCase()}</button>
+                <button key={s} onClick={()=>setSort(s)} style={{padding:"3px 10px",borderRadius:99,border:"1px solid",cursor:"pointer",fontSize:11,fontWeight:500,fontFamily:"inherit",borderColor:sort===s?"var(--blue-500)":"var(--gray-200)",background:sort===s?"var(--blue-50)":"transparent",color:sort===s?"var(--blue-700)":"var(--gray-500)",transition:"all .15s"}}>{s.toUpperCase()}</button>
               ))}
             </div>
           </div>
-          <div style={{display:"grid",gridTemplateColumns:cols,padding:"8px 16px",borderBottom:"1px solid var(--gray-100)",fontSize:11,fontWeight:500,color:"var(--gray-400)",letterSpacing:"0.04em",textTransform:"uppercase"}}>
+          <div style={{display:"grid",gridTemplateColumns:cols,padding:"7px 14px",borderBottom:"1px solid var(--gray-100)",fontSize:11,fontWeight:500,color:"var(--gray-400)",letterSpacing:".04em",textTransform:"uppercase"}}>
             <span>#</span><span>Model / host</span><span>TPS</span><span>TTFT</span><span>CC</span><span>Status</span>
           </div>
           {rows.length===0
-            ?<div style={{padding:"48px 0",textAlign:"center",color:"var(--gray-400)",fontSize:13}}>{data.scanning?<span style={{animation:"pulse 1.5s infinite"}}>Scanning…</span>:`No results for "${filter}"`}</div>
+            ?<div style={{padding:"48px 0",textAlign:"center",color:"var(--gray-400)",fontSize:13}}>{data.scanning?<span style={{animation:"pulse 1.5s infinite"}}>Scanning…</span>:data.healthChecking?<span style={{animation:"pulse 1.5s infinite"}}>Health checking…</span>:`No results for "${filter}"`}</div>
             :rows.map((c,i)=>(
-              <div key={c.id||i} className="table-row" style={{gridTemplateColumns:cols,animation:`fadeIn 0.3s ease ${i*0.03}s both`}} onClick={()=>setSelected(c)}>
+              <div key={c.id||i} className="table-row" style={{gridTemplateColumns:cols,animation:`fadeIn .3s ease ${i*.03}s both`}} onClick={()=>setSelected(c)}>
                 <span style={{fontSize:11,color:"var(--gray-400)"}}>{i+1}</span>
                 <div>
                   <div style={{display:"flex",alignItems:"center",gap:6}}>
+                    <HealthDot status={c.status}/>
                     <span style={{fontWeight:500,fontSize:13}}>{c.model}</span>
                     {c.manual&&<span className="pill pill-purple" style={{fontSize:10}}>manual</span>}
                   </div>
-                  <div style={{fontSize:11,color:"var(--gray-400)",marginTop:1}}>{c.ip}:{c.port} · {(c.org||"").slice(0,24)}</div>
+                  <div style={{fontSize:11,color:"var(--gray-400)",marginTop:1}}>{c.ip}:{c.port} · {(c.org||"").slice(0,22)}</div>
                 </div>
                 <TpsBar value={c.tps||0}/>
                 <span style={{fontSize:12,fontWeight:500,color:c.ttft<=5?"var(--green-600)":c.ttft<=8?"var(--amber-600)":"var(--red-600)"}}>{c.ttft!=null?`${c.ttft.toFixed(2)}s`:"—"}</span>
@@ -496,28 +648,35 @@ function App(){
           }
         </div>
 
+        {/* Right panel */}
         <div style={{display:"flex",flexDirection:"column",gap:12}}>
-          <div className="card" style={{display:"flex",flexDirection:"column",flex:1,overflow:"hidden"}}>
-            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 16px",borderBottom:"1px solid var(--gray-100)"}}>
+          <div className="card" style={{display:"flex",flexDirection:"column",overflow:"hidden"}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"9px 14px",borderBottom:"1px solid var(--gray-100)"}}>
               <span style={{fontSize:12,fontWeight:500,color:"var(--gray-500)"}}>Scan log</span>
               {data.scanning&&<span style={{fontSize:11,color:"var(--green-600)",fontWeight:500,animation:"pulse 1.5s infinite"}}>● Live</span>}
+              {data.healthChecking&&<span style={{fontSize:11,color:"var(--teal-600)",fontWeight:500,animation:"pulse 1.5s infinite"}}>❤ Checking</span>}
             </div>
-            <ScanLog lines={logLines} scanning={data.scanning}/>
+            <ScanLog lines={logLines} scanning={data.scanning||data.healthChecking}/>
           </div>
+
           <div className="card" style={{padding:"14px 16px"}}>
-            <div className="section-label" style={{marginBottom:10}}>LiteLLM</div>
-            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+            <div className="section-label" style={{marginBottom:9}}>LiteLLM</div>
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:9}}>
               <div style={{width:7,height:7,borderRadius:"50%",background:"var(--green-500)",flexShrink:0}}/>
               <span style={{fontSize:12,fontWeight:500,color:"var(--gray-700)"}}>{data.litellmUrl||"hanse8.pitago.de"}</span>
             </div>
-            {(data.candidates||[]).filter(c=>c.status==="added").slice(0,6).map((c,i)=>(
-              <div key={i} style={{fontSize:11,color:"var(--gray-500)",lineHeight:1.9,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}><span style={{color:"var(--green-500)",marginRight:4}}>✓</span>{c.litellmName||c.model}</div>
+            {(data.candidates||[]).filter(c=>c.status==="added"||c.status==="slow").slice(0,5).map((c,i)=>(
+              <div key={i} style={{fontSize:11,lineHeight:1.9,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",display:"flex",alignItems:"center",gap:5}}>
+                <HealthDot status={c.status}/>
+                <span style={{color:"var(--gray-500)"}}>{c.litellmName||c.model}</span>
+              </div>
             ))}
-            {added>6&&<div style={{fontSize:11,color:"var(--gray-400)",marginTop:2}}>+{added-6} more</div>}
-            {added===0&&<div style={{fontSize:11,color:"var(--gray-400)"}}>No models registered yet</div>}
+            {added+slow>5&&<div style={{fontSize:11,color:"var(--gray-400)",marginTop:2}}>+{added+slow-5} more</div>}
+            {added+slow===0&&<div style={{fontSize:11,color:"var(--gray-400)"}}>No models registered yet</div>}
           </div>
+
           <div className="card" style={{padding:"14px 16px"}}>
-            <div className="section-label" style={{marginBottom:10}}>Thresholds</div>
+            <div className="section-label" style={{marginBottom:8}}>Thresholds</div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
               {[["Max TTFT","5.0 s","var(--amber-600)"],["Min TPS","8.0","var(--blue-600)"]].map(([l,v,c])=>(
                 <div key={l} style={{background:"var(--gray-50)",borderRadius:"var(--radius-md)",padding:"8px 10px"}}>
@@ -530,11 +689,12 @@ function App(){
         </div>
       </div>
 
-      <div style={{marginTop:16,fontSize:11,color:"var(--gray-300)",textAlign:"center"}}>OllamaScout v1.0 · ConnectAsset · Click row for details · Auto-refresh 4s</div>
+      <div style={{marginTop:14,fontSize:11,color:"var(--gray-300)",textAlign:"center"}}>OllamaScout v2.0 · ConnectAsset · Click row for details · Auto-refresh 4s</div>
 
-      {selected&&<DetailModal c={selected} onClose={()=>setSelected(null)} onChat={c=>{setChatTarget(c);}} onAddAnyway={fetchData}/>}
+      {selected&&<DetailModal c={selected} onClose={()=>setSelected(null)} onChat={c=>{setSelected(null);setChatTarget(c);}} onAddAnyway={fetchData}/>}
       {chatTarget&&<ChatModal c={chatTarget} onClose={()=>setChatTarget(null)} onAddAnyway={fetchData}/>}
       {showManual&&<ManualModal onClose={()=>setShowManual(false)} onAdded={fetchData}/>}
+      {showSettings&&<SettingsModal onClose={()=>setShowSettings(false)} onSaved={fetchData}/>}
     </div>
   );
 }
