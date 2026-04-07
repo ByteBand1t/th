@@ -70,12 +70,14 @@ class ModelCandidate:
 
 
 def _get_tags(host: OllamaHost) -> list[dict] | None:
-    """Fetch /api/tags. Returns None if unreachable, empty list if 401."""
     blocked = _load_blocklist()
     if f"{host.ip}:{host.port}" in blocked:
         return None
     try:
-        r = httpx.get(f"{host.base_url}/api/tags", timeout=TAGS_TIMEOUT)
+        r = httpx.get(
+            f"{host.base_url}/api/tags",
+            timeout=httpx.Timeout(4.0, connect=2.0)
+        )
         if r.status_code == 200:
             return r.json().get("models", [])
         if r.status_code == 401:
