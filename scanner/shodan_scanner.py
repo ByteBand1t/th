@@ -6,9 +6,9 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Callable
 
-CACHE_FILE = Path("/data/known_hosts.json")
-HOST_TTL_DAYS = 3       # Re-check known hosts after 3 days
-MIN_CREDITS   = 2       # Stop scanning if fewer credits remain
+CACHE_FILE  = Path("/data/known_hosts.json")
+HOST_TTL_DAYS = 7
+MIN_CREDITS   = 2
 
 
 @dataclass
@@ -38,22 +38,16 @@ def _save_cache(cache: dict):
     CACHE_FILE.write_text(json.dumps(cache, indent=2))
 
 
-def _cache_key(ip: str, port: int) -> str:
-    return f"{ip}:{port}"
-
-
 def discover_hosts(api_key, queries, max_results=50, exclude_orgs=None, log_fn=print) -> list[OllamaHost]:
     api = shodan.Shodan(api_key)
     exclude_orgs = [e.lower() for e in (exclude_orgs or [])]
     if isinstance(queries, str):
         queries = [queries]
 
-    # Load cache
     cache = _load_cache()
     now   = datetime.now(timezone.utc)
     ttl   = timedelta(days=HOST_TTL_DAYS)
 
-    # Separate fresh (skip Shodan) vs stale (re-query) cache entries
     fresh_hosts: list[OllamaHost] = []
     stale_keys:  set[str]         = set()
 
@@ -70,21 +64,19 @@ def discover_hosts(api_key, queries, max_results=50, exclude_orgs=None, log_fn=p
         else:
             stale_keys.add(key)
 
-    log_fn(f"  Cache: {len(fresh_hosts)} fresh hosts (skip), {len(stale_keys)} stale (re-check)")
+    log_fn(f"  Cache: {len(fresh_hosts)} fresh (skip Shodan), {len(stale_keys)} stale (re-check)")
 
-    # Check remaining credits
     try:
         info    = api.info()
         credits = info.get("query_credits", 0)
         log_fn(f"  Shodan credits remaining: {credits}")
         if credits < MIN_CREDITS:
-            log_fn(f"  ⚠ Less than {MIN_CREDITS} credits left — skipping Shodan queries, using cache only")
+            log_fn(f"  ⚠ Only {credits} credits left — using cache only")
             return fresh_hosts
     except Exception as e:
         log_fn(f"  Could not check credits: {e}")
 
-    # Shodan queries for new + stale hosts
-    seen:  set[str]         = {_cache_key(h.ip, h.port) for h in fresh_hosts}
+    seen = {f"{h.ip}:{h.port}" for h in fresh_hosts}
     new_hosts: list[OllamaHost] = []
 
     for query in queries:
@@ -96,10 +88,9 @@ def discover_hosts(api_key, queries, max_results=50, exclude_orgs=None, log_fn=p
                 ip   = m.get("ip_str", "")
                 port = m.get("port", 11434)
                 org  = m.get("org", "unknown")
-                key  = _cache_key(ip, port)
+                key  = f"{ip}:{port}"
 
                 if key in seen:
-                    # Update last_seen for stale entries
                     if key in stale_keys:
                         cache[key]["last_seen"] = now.isoformat()
                         stale_keys.discard(key)
@@ -118,14 +109,11 @@ def discover_hosts(api_key, queries, max_results=50, exclude_orgs=None, log_fn=p
                     from_cache=False,
                 )
                 new_hosts.append(host)
-
-                # Add to cache
                 cache[key] = {
-                    "ip": ip, "port": port,
-                    "org": org,
+                    "ip": ip, "port": port, "org": org,
                     "country": m.get("location", {}).get("country_code", "??"),
                     "last_seen": now.isoformat(),
-                    "first_seen": now.isoformat(),
+                    "first_seen": cache.get(key, {}).get("first_seen", now.isoformat()),
                 }
                 found += 1
 
@@ -135,7 +123,6 @@ def discover_hosts(api_key, queries, max_results=50, exclude_orgs=None, log_fn=p
             log_fn(f"    Shodan error: {e}")
 
     _save_cache(cache)
-
     all_hosts = fresh_hosts + new_hosts
-    log_fn(f"  Total: {len(all_hosts)} hosts ({len(fresh_hosts)} from cache, {len(new_hosts)} new from Shodan)")
+    log_fn(f"  Total: {len(all_hosts)} hosts ({len(fresh_hosts)} cache, {len(new_hosts)} new)")
     return all_hosts
