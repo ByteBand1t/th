@@ -11,23 +11,16 @@
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body, #root { height: 100%; }
-body {
-  background: #070711;
-  color: #e0e0e0;
-  font-family: 'IBM Plex Mono', 'Courier New', monospace;
-  -webkit-font-smoothing: antialiased;
-}
+body { background: #070711; color: #e0e0e0; font-family: 'IBM Plex Mono', 'Courier New', monospace; -webkit-font-smoothing: antialiased; }
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: #0d0d1a; }
 ::-webkit-scrollbar-thumb { background: #00ff8833; border-radius: 2px; }
-
-@keyframes pulse    { 0%,100%{opacity:1}  50%{opacity:0.3} }
-@keyframes fadeUp   { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-@keyframes glow     { 0%,100%{box-shadow:0 0 6px #00ff8844} 50%{box-shadow:0 0 18px #00ff8888} }
-@keyframes blink    { 0%,49%{opacity:1} 50%,100%{opacity:0} }
-@keyframes spin     { to{transform:rotate(360deg)} }
-
-.fade-up  { animation: fadeUp 0.45s ease both; }
+@keyframes pulse  { 0%,100%{opacity:1} 50%{opacity:0.3} }
+@keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+@keyframes glow   { 0%,100%{box-shadow:0 0 6px #00ff8844} 50%{box-shadow:0 0 18px #00ff8888} }
+@keyframes blink  { 0%,49%{opacity:1} 50%,100%{opacity:0} }
+@keyframes spin   { to{transform:rotate(360deg)} }
+.fade-up { animation: fadeUp 0.45s ease both; }
 .row-item { transition: background .12s, transform .1s, border-color .12s; cursor: pointer; }
 .row-item:hover { background: #00ff8808 !important; transform: translateX(3px); border-left-color: #00ff8855 !important; }
 .btn { transition: all .15s; cursor: pointer; font-family: inherit; }
@@ -35,118 +28,294 @@ body {
 .btn:active:not(:disabled) { transform: translateY(0); }
 .pill { transition: all .12s; cursor: pointer; font-family: inherit; }
 .pill:hover { opacity: .8; }
-
-.modal-back {
-  position: fixed; inset: 0;
-  background: rgba(4,4,16,.9);
-  backdrop-filter: blur(6px);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 200;
-  animation: fadeUp .18s ease;
-}
-.modal-box {
-  background: #0a0a1c;
-  border: 1px solid #00ff8833;
-  border-radius: 14px;
-  padding: 28px;
-  width: min(520px, 95vw);
-  box-shadow: 0 0 60px #00ff8815, 0 24px 64px rgba(0,0,0,.6);
-  animation: fadeUp .22s ease;
-}
-.log-line       { font-size: 11px; line-height: 1.75; color: #2a4a34; }
-.log-line.ok    { color: #00ff88; }
-.log-line.err   { color: #ff4466; }
-.log-line.head  { color: #4488ff; }
-.log-line.dim   { color: #1e3028; }
+.modal-back { position:fixed;inset:0;background:rgba(4,4,16,.92);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:200;animation:fadeUp .18s ease; }
+.modal-box  { background:#0a0a1c;border:1px solid #00ff8833;border-radius:14px;padding:28px;width:min(560px,95vw);box-shadow:0 0 60px #00ff8815,0 24px 64px rgba(0,0,0,.6);animation:fadeUp .22s ease;max-height:90vh;overflow-y:auto; }
+.manual-box { background:#0a0a1c;border:1px solid #4488ff33;border-radius:14px;padding:28px;width:min(640px,95vw);box-shadow:0 0 60px #4488ff15,0 24px 64px rgba(0,0,0,.6);animation:fadeUp .22s ease;max-height:90vh;overflow-y:auto; }
+.log-line     { font-size:11px;line-height:1.75;color:#2a4a34; }
+.log-line.ok  { color:#00ff88; }
+.log-line.err { color:#ff4466; }
+.log-line.head{ color:#4488ff; }
+.log-line.dim { color:#1e3028; }
+.check-row { display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:background .12s; }
+.check-row:hover { background:#ffffff08; }
+input[type=checkbox] { accent-color:#00ff88;width:14px;height:14px;cursor:pointer; }
+input[type=text], input[type=number] { background:#06060f;border:1px solid #1a1a2e;color:#e0e0e0;border-radius:6px;padding:8px 12px;font-family:inherit;font-size:12px;outline:none;transition:border-color .15s; }
+input[type=text]:focus, input[type=number]:focus { border-color:#4488ff66; }
 </style>
 </head>
 <body>
 <div id="root"></div>
-
 <script type="text/babel">
 const { useState, useEffect, useRef, useCallback } = React;
+const FLAG  = {DE:"🇩🇪",US:"🇺🇸",NL:"🇳🇱",SG:"🇸🇬",GB:"🇬🇧",FR:"🇫🇷",JP:"🇯🇵",AU:"🇦🇺",CA:"🇨🇦",CN:"🇨🇳",RU:"🇷🇺",CH:"🇨🇭",AT:"🇦🇹",SE:"🇸🇪",FI:"🇫🇮",NO:"🇳🇴"};
+const EMPTY = { lastScan:null, scanning:false, hostsScanned:0, candidates:[], log:[] };
 
-const FLAG = {DE:"🇩🇪",US:"🇺🇸",NL:"🇳🇱",SG:"🇸🇬",GB:"🇬🇧",FR:"🇫🇷",JP:"🇯🇵",AU:"🇦🇺",CA:"🇨🇦",CN:"🇨🇳",RU:"🇷🇺",CH:"🇨🇭",AT:"🇦🇹",SE:"🇸🇪",FI:"🇫🇮",NO:"🇳🇴"};
-const EMPTY = { lastScan: null, scanning: false, hostsScanned: 0, candidates: [], log: [] };
-
-/* ── TPS bar ───────────────────────────────────────────── */
-function TpsBar({ value = 0 }) {
-  const pct = Math.min((value / 30) * 100, 100);
-  const c = value >= 10 ? "#00ff88" : value >= 5 ? "#ffaa00" : "#ff4466";
+/* ── TPS bar ── */
+function TpsBar({ value=0 }) {
+  const pct = Math.min((value/30)*100,100);
+  const c = value>=10?"#00ff88":value>=8?"#88ff44":value>=5?"#ffaa00":"#ff4466";
   return (
     <div style={{display:"flex",alignItems:"center",gap:7}}>
       <div style={{width:68,height:5,background:"#111",borderRadius:3,overflow:"hidden"}}>
-        <div style={{width:`${pct}%`,height:"100%",background:c,borderRadius:3,
-          boxShadow:`0 0 5px ${c}88`,transition:"width 1s ease"}} />
+        <div style={{width:`${pct}%`,height:"100%",background:c,borderRadius:3,boxShadow:`0 0 5px ${c}88`,transition:"width 1s ease"}}/>
       </div>
       <span style={{color:c,fontSize:11,minWidth:34}}>{(value||0).toFixed(1)}</span>
     </div>
   );
 }
 
-/* ── Status badge ──────────────────────────────────────── */
+/* ── Badge ── */
 function Badge({ status }) {
   const m = {
-    added:   ["ADDED",   "#00ff8812","#00ff8833","#00ff88"],
-    failed:  ["FAIL",    "#ff446612","#ff446633","#ff4466"],
-    pending: ["TESTING…","#ffaa0012","#ffaa0033","#ffaa00"],
-  }[status] || [status.toUpperCase(),"#ffffff08","#ffffff15","#888"];
-  return (
-    <span style={{background:m[1],border:`1px solid ${m[2]}`,color:m[3],
-      fontSize:9,fontWeight:700,letterSpacing:1,borderRadius:4,padding:"2px 7px",
-      textShadow:`0 0 8px ${m[3]}44`}}>{m[0]}</span>
-  );
+    added:   ["ADDED",  "#00ff8812","#00ff8833","#00ff88"],
+    failed:  ["FAIL",   "#ff446612","#ff446633","#ff4466"],
+    pending: ["TEST…",  "#ffaa0012","#ffaa0033","#ffaa00"],
+    manual:  ["MANUAL", "#4488ff12","#4488ff33","#4488ff"],
+  }[status]||[status.toUpperCase(),"#ffffff08","#ffffff15","#888"];
+  return <span style={{background:m[1],border:`1px solid ${m[2]}`,color:m[3],fontSize:9,fontWeight:700,letterSpacing:1,borderRadius:4,padding:"2px 7px"}}>{m[0]}</span>;
 }
 
-/* ── Detail modal ──────────────────────────────────────── */
-function Modal({ c, onClose }) {
+/* ── Detail modal ── */
+function DetailModal({ c, onClose }) {
   useEffect(() => {
-    const h = e => e.key === "Escape" && onClose();
-    document.addEventListener("keydown", h);
-    return () => document.removeEventListener("keydown", h);
-  }, []);
+    const h = e => e.key==="Escape"&&onClose();
+    document.addEventListener("keydown",h);
+    return ()=>document.removeEventListener("keydown",h);
+  },[]);
   return (
     <div className="modal-back" onClick={onClose}>
-      <div className="modal-box" onClick={e => e.stopPropagation()}>
+      <div className="modal-box" onClick={e=>e.stopPropagation()}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:20}}>
           <div>
             <div style={{color:"#00ff88",fontSize:15,fontWeight:700}}>{c.model}</div>
-            <div style={{color:"#444",fontSize:11,marginTop:3}}>
-              {FLAG[c.country]||"🌐"} {c.ip}:{c.port} · {c.org}
-            </div>
+            <div style={{color:"#444",fontSize:11,marginTop:3}}>{FLAG[c.country]||"🌐"} {c.ip}:{c.port} · {c.org}</div>
           </div>
-          <button className="btn" onClick={onClose}
-            style={{background:"none",border:"1px solid #222",color:"#555",
-              borderRadius:6,padding:"4px 12px",fontSize:11}}>ESC</button>
+          <button className="btn" onClick={onClose} style={{background:"none",border:"1px solid #222",color:"#555",borderRadius:6,padding:"4px 12px",fontSize:11}}>ESC</button>
         </div>
-
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:16}}>
-          {[
-            ["TIME TO FIRST TOKEN", c.ttft!=null?`${c.ttft.toFixed(2)}s`:"—",  c.ttft<=8?"#00ff88":"#ff4466"],
-            ["TOKENS / SECOND",     c.tps !=null?c.tps.toFixed(1):"—",         c.tps>=5 ?"#00ff88":"#ff4466"],
-            ["MATCHED PATTERN",     c.matched||"—", "#4488ff"],
-          ].map(([l,v,col]) => (
+          {[["TTFT",c.ttft!=null?`${c.ttft.toFixed(2)}s`:"—",c.ttft<=5?"#00ff88":"#ff4466"],
+            ["TPS",c.tps!=null?c.tps.toFixed(1):"—",c.tps>=8?"#00ff88":"#ff4466"],
+            ["PATTERN",c.matched||"—","#4488ff"]].map(([l,v,col])=>(
             <div key={l} style={{background:"#06060f",border:"1px solid #111",borderRadius:8,padding:"11px 14px"}}>
               <div style={{color:"#333",fontSize:8,letterSpacing:2,marginBottom:5}}>{l}</div>
               <div style={{color:col,fontSize:19,fontWeight:700,fontFamily:"'Orbitron',monospace"}}>{v}</div>
             </div>
           ))}
         </div>
+        {c.response&&<div style={{background:"#06060f",border:"1px solid #111",borderRadius:8,padding:14,marginBottom:12}}>
+          <div style={{color:"#333",fontSize:8,letterSpacing:2,marginBottom:6}}>BENCHMARK RESPONSE</div>
+          <div style={{color:"#aaa",fontSize:12,lineHeight:1.7,fontStyle:"italic"}}>"{c.response}"</div>
+        </div>}
+        {c.failReason&&<div style={{background:"#180810",border:"1px solid #ff446622",borderRadius:8,padding:"9px 14px",marginBottom:10,color:"#ff4466",fontSize:11}}>✗ {c.failReason}</div>}
+        {c.status==="added"&&c.litellmName&&<div style={{background:"#061208",border:"1px solid #00ff8822",borderRadius:8,padding:"9px 14px"}}>
+          <div style={{color:"#333",fontSize:8,letterSpacing:2,marginBottom:5}}>LITELLM MODEL STRING</div>
+          <code style={{color:"#00ff88",fontSize:12}}>ollama/{c.model}@{c.ip.replace(/\./g,"-")}</code>
+        </div>}
+      </div>
+    </div>
+  );
+}
 
-        {c.response && (
-          <div style={{background:"#06060f",border:"1px solid #111",borderRadius:8,padding:14,marginBottom:12}}>
-            <div style={{color:"#333",fontSize:8,letterSpacing:2,marginBottom:6}}>BENCHMARK RESPONSE</div>
-            <div style={{color:"#aaa",fontSize:12,lineHeight:1.7,fontStyle:"italic"}}>"{c.response}"</div>
+/* ── Manual Add Modal ── */
+function ManualModal({ onClose, onAdded }) {
+  const [step,      setStep]      = useState("input");   // input | probing | select | benchmarking | results
+  const [ip,        setIp]        = useState("");
+  const [port,      setPort]      = useState(11434);
+  const [models,    setModels]    = useState([]);
+  const [selected,  setSelected]  = useState([]);
+  const [benchRes,  setBenchRes]  = useState([]);
+  const [toAdd,     setToAdd]     = useState([]);
+  const [error,     setError]     = useState(null);
+  const [adding,    setAdding]    = useState(false);
+
+  useEffect(()=>{
+    const h=e=>e.key==="Escape"&&onClose();
+    document.addEventListener("keydown",h);
+    return ()=>document.removeEventListener("keydown",h);
+  },[]);
+
+  const probe = async () => {
+    if (!ip) return;
+    setStep("probing"); setError(null);
+    try {
+      const r = await fetch("/api/probe",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ip,port:Number(port)})});
+      if (!r.ok) { const d=await r.json(); throw new Error(d.detail||"Probe failed"); }
+      const d = await r.json();
+      setModels(d.models);
+      setSelected([]);
+      setStep("select");
+    } catch(e) { setError(e.message); setStep("input"); }
+  };
+
+  const benchmark = async () => {
+    if (!selected.length) return;
+    setStep("benchmarking"); setError(null);
+    try {
+      const r = await fetch("/api/benchmark-single",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ip,port:Number(port),models:selected})});
+      if (!r.ok) throw new Error("Benchmark failed");
+      const d = await r.json();
+      setBenchRes(d.results);
+      setToAdd(d.results.filter(r=>r.ok).map(r=>r.model));
+      setStep("results");
+    } catch(e) { setError(e.message); setStep("select"); }
+  };
+
+  const addSelected = async () => {
+    setAdding(true);
+    for (const model of toAdd) {
+      const res = benchRes.find(r=>r.model===model);
+      if (!res) continue;
+      await fetch("/api/add-manual",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
+        ip, port:Number(port), model,
+        ttft:res.ttft, tps:res.tps, response:res.response,
+        org:"manual", country:"??",
+      })});
+    }
+    setAdding(false);
+    onAdded();
+    onClose();
+  };
+
+  const toggleSel = (name) => setSelected(s=>s.includes(name)?s.filter(x=>x!==name):[...s,name]);
+  const toggleAdd = (name) => setToAdd(s=>s.includes(name)?s.filter(x=>x!==name):[...s,name]);
+
+  const stepLabel = {input:"ENTER HOST",probing:"PROBING…",select:"SELECT MODELS",benchmarking:"BENCHMARKING…",results:"REVIEW & ADD"};
+
+  return (
+    <div className="modal-back" onClick={onClose}>
+      <div className="manual-box" onClick={e=>e.stopPropagation()}>
+
+        {/* Header */}
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+          <div>
+            <div style={{color:"#4488ff",fontSize:14,fontWeight:700,letterSpacing:2}}>MANUAL ADD</div>
+            <div style={{color:"#333",fontSize:9,letterSpacing:2,marginTop:2}}>{stepLabel[step]}</div>
+          </div>
+          <button className="btn" onClick={onClose} style={{background:"none",border:"1px solid #222",color:"#555",borderRadius:6,padding:"4px 12px",fontSize:11}}>ESC</button>
+        </div>
+
+        {/* Step: input */}
+        {(step==="input"||step==="probing") && (
+          <div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 100px",gap:10,marginBottom:14}}>
+              <div>
+                <div style={{color:"#333",fontSize:9,letterSpacing:2,marginBottom:6}}>IP ADDRESS</div>
+                <input type="text" value={ip} onChange={e=>setIp(e.target.value)}
+                  placeholder="203.255.78.58" style={{width:"100%"}}
+                  onKeyDown={e=>e.key==="Enter"&&probe()} />
+              </div>
+              <div>
+                <div style={{color:"#333",fontSize:9,letterSpacing:2,marginBottom:6}}>PORT</div>
+                <input type="number" value={port} onChange={e=>setPort(e.target.value)} style={{width:"100%"}} />
+              </div>
+            </div>
+            {error&&<div style={{color:"#ff4466",fontSize:11,marginBottom:12}}>✗ {error}</div>}
+            <button className="btn" onClick={probe} disabled={!ip||step==="probing"} style={{
+              background:"#4488ff18",border:"1px solid #4488ff44",color:"#4488ff",
+              borderRadius:8,padding:"9px 20px",fontSize:11,letterSpacing:1.5,fontWeight:700,width:"100%",
+            }}>
+              {step==="probing"
+                ? <span style={{animation:"pulse 1s infinite"}}>● PROBING {ip}:{port}…</span>
+                : `▶ PROBE ${ip||"HOST"}`}
+            </button>
           </div>
         )}
-        {c.failReason && (
-          <div style={{background:"#180810",border:"1px solid #ff446622",borderRadius:8,
-            padding:"9px 14px",marginBottom:10,color:"#ff4466",fontSize:11}}>✗ {c.failReason}</div>
+
+        {/* Step: select */}
+        {step==="select" && (
+          <div>
+            <div style={{color:"#444",fontSize:11,marginBottom:12}}>
+              {models.length} model(s) found on <span style={{color:"#4488ff"}}>{ip}:{port}</span>
+              {" — "}select which to benchmark:
+            </div>
+            <div style={{border:"1px solid #1a1a2e",borderRadius:8,overflow:"hidden",marginBottom:14}}>
+              {models.length===0
+                ? <div style={{padding:20,textAlign:"center",color:"#333",fontSize:11}}>No models found</div>
+                : models.map(m=>(
+                  <label key={m.name} className="check-row" style={{borderBottom:"1px solid #0f0f1a"}}>
+                    <input type="checkbox" checked={selected.includes(m.name)} onChange={()=>toggleSel(m.name)} />
+                    <div style={{flex:1}}>
+                      <div style={{color:"#d0d0e0",fontSize:12}}>{m.name}</div>
+                      <div style={{color:"#333",fontSize:9,marginTop:1}}>
+                        {m.size?(m.size/1e9).toFixed(1)+"GB":"—"}
+                      </div>
+                    </div>
+                  </label>
+                ))
+              }
+            </div>
+            <div style={{display:"flex",gap:8}}>
+              <button className="btn" onClick={()=>setStep("input")} style={{background:"transparent",border:"1px solid #333",color:"#555",borderRadius:8,padding:"8px 16px",fontSize:11}}>← BACK</button>
+              <button className="btn" onClick={()=>setSelected(models.map(m=>m.name))} style={{background:"transparent",border:"1px solid #333",color:"#555",borderRadius:8,padding:"8px 16px",fontSize:11}}>SELECT ALL</button>
+              <button className="btn" onClick={benchmark} disabled={!selected.length} style={{
+                flex:1,background:"#4488ff18",border:"1px solid #4488ff44",color:selected.length?"#4488ff":"#333",
+                borderRadius:8,padding:"9px 20px",fontSize:11,letterSpacing:1.5,fontWeight:700,
+              }}>▶ BENCHMARK {selected.length} MODEL(S)</button>
+            </div>
+          </div>
         )}
-        {c.status==="added" && c.litellmName && (
-          <div style={{background:"#061208",border:"1px solid #00ff8822",borderRadius:8,padding:"9px 14px"}}>
-            <div style={{color:"#333",fontSize:8,letterSpacing:2,marginBottom:5}}>LITELLM MODEL STRING</div>
-            <code style={{color:"#00ff88",fontSize:12}}>ollama/{c.model}@{c.ip.replace(/\./g,"-")}</code>
+
+        {/* Step: benchmarking */}
+        {step==="benchmarking" && (
+          <div style={{textAlign:"center",padding:"30px 0"}}>
+            <div style={{color:"#4488ff",fontSize:13,marginBottom:10,animation:"pulse 1.5s infinite"}}>
+              ● BENCHMARKING {selected.length} MODEL(S)
+            </div>
+            <div style={{color:"#333",fontSize:11}}>Running 3 rounds each — this may take a while…</div>
+          </div>
+        )}
+
+        {/* Step: results */}
+        {step==="results" && (
+          <div>
+            <div style={{color:"#444",fontSize:11,marginBottom:12}}>
+              Benchmark complete — select which models to add to LiteLLM:
+            </div>
+            <div style={{border:"1px solid #1a1a2e",borderRadius:8,overflow:"hidden",marginBottom:14}}>
+              {benchRes.map(r=>(
+                <label key={r.model} className="check-row" style={{
+                  borderBottom:"1px solid #0f0f1a",
+                  background: r.ok?"#00ff8804":"#ff446604",
+                  opacity: r.ok?1:0.6,
+                }}>
+                  <input type="checkbox"
+                    checked={toAdd.includes(r.model)}
+                    onChange={()=>r.ok&&toggleAdd(r.model)}
+                    disabled={!r.ok} />
+                  <div style={{flex:1}}>
+                    <div style={{display:"flex",alignItems:"center",gap:8}}>
+                      <span style={{color:"#d0d0e0",fontSize:12}}>{r.model}</span>
+                      {r.ok
+                        ? <span style={{color:"#00ff88",fontSize:9}}>✓ PASS</span>
+                        : <span style={{color:"#ff4466",fontSize:9}}>✗ FAIL</span>}
+                    </div>
+                    {r.ok
+                      ? <div style={{color:"#444",fontSize:10,marginTop:2}}>
+                          TTFT {r.ttft?.toFixed(2)}s · TPS {r.tps?.toFixed(1)} · "{r.response?.slice(0,60)}…"
+                        </div>
+                      : <div style={{color:"#ff4466",fontSize:10,marginTop:2}}>{r.error}</div>
+                    }
+                  </div>
+                  {r.ok&&<div style={{textAlign:"right"}}>
+                    <div style={{color:r.tps>=8?"#00ff88":"#ffaa00",fontSize:14,fontWeight:700,fontFamily:"'Orbitron',monospace"}}>{r.tps?.toFixed(1)}</div>
+                    <div style={{color:"#333",fontSize:8}}>TPS</div>
+                  </div>}
+                </label>
+              ))}
+            </div>
+            <div style={{display:"flex",gap:8}}>
+              <button className="btn" onClick={()=>setStep("select")} style={{background:"transparent",border:"1px solid #333",color:"#555",borderRadius:8,padding:"8px 16px",fontSize:11}}>← BACK</button>
+              <button className="btn" onClick={addSelected} disabled={!toAdd.length||adding} style={{
+                flex:1,background:toAdd.length?"#00ff8818":"transparent",
+                border:`1px solid ${toAdd.length?"#00ff8844":"#333"}`,
+                color:toAdd.length?"#00ff88":"#333",
+                borderRadius:8,padding:"9px 20px",fontSize:11,letterSpacing:1.5,fontWeight:700,
+              }}>
+                {adding
+                  ? <span style={{animation:"pulse 1s infinite"}}>● ADDING…</span>
+                  : `✓ ADD ${toAdd.length} MODEL(S) TO LITELLM`}
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -154,257 +323,183 @@ function Modal({ c, onClose }) {
   );
 }
 
-/* ── Scan log ───────────────────────────────────────────── */
+/* ── Scan Log ── */
 function ScanLog({ lines, scanning }) {
   const ref = useRef(null);
-  useEffect(() => { if (ref.current) ref.current.scrollTop = ref.current.scrollHeight; }, [lines]);
-  const cls = l => {
-    if (/Step \d/.test(l))                   return "head";
-    if (/✓|PASS|Added|complete/.test(l))     return "ok";
-    if (/✗|FAIL|error|Error/.test(l))        return "err";
-    if (/^  /.test(l))                       return "dim";
-    return "";
-  };
+  useEffect(()=>{ if(ref.current) ref.current.scrollTop=ref.current.scrollHeight; },[lines]);
+  const cls = l => /Step \d/.test(l)?"head":/✓|PASS|Added|complete/.test(l)?"ok":/✗|FAIL|error|Error/.test(l)?"err":/^  /.test(l)?"dim":"";
   return (
     <div ref={ref} style={{flex:1,overflowY:"auto",padding:"12px 14px",maxHeight:360,minHeight:100}}>
-      {lines.length === 0
-        ? <><div className="log-line dim">› Awaiting scan…</div><div className="log-line dim">› Click RUN SCAN to start</div></>
-        : lines.map((l,i) => <div key={i} className={`log-line ${cls(l)}`}>{l||"\u00a0"}</div>)
+      {lines.length===0
+        ?<><div className="log-line dim">› Awaiting scan…</div><div className="log-line dim">› Click RUN SCAN to start</div></>
+        :lines.map((l,i)=><div key={i} className={`log-line ${cls(l)}`}>{l||"\u00a0"}</div>)
       }
-      {scanning && <span style={{animation:"blink 1s infinite",color:"#00ff88"}}>█</span>}
+      {scanning&&<span style={{animation:"blink 1s infinite",color:"#00ff88"}}>█</span>}
     </div>
   );
 }
 
-/* ── Main App ───────────────────────────────────────────── */
+/* ── Main App ── */
 function App() {
-  const [data,     setData]     = useState(EMPTY);
-  const [selected, setSelected] = useState(null);
-  const [filter,   setFilter]   = useState("all");
-  const [sort,     setSort]     = useState("tps");
-  const [animIn,   setAnimIn]   = useState(false);
-  const [error,    setError]    = useState(null);
+  const [data,       setData]      = useState(EMPTY);
+  const [selected,   setSelected]  = useState(null);
+  const [showManual, setShowManual]= useState(false);
+  const [filter,     setFilter]    = useState("all");
+  const [sort,       setSort]      = useState("tps");
+  const [animIn,     setAnimIn]    = useState(false);
+  const [error,      setError]     = useState(null);
   const pollRef = useRef(null);
 
   const fetchData = useCallback(async () => {
     try {
       const r = await fetch("/api/results");
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      const d = await r.json();
-      setData(d);
-      setError(null);
-    } catch(e) {
-      setError("Backend nicht erreichbar");
-    }
-  }, []);
+      setData(await r.json()); setError(null);
+    } catch(e) { setError("Backend nicht erreichbar"); }
+  },[]);
 
-  useEffect(() => {
-    setTimeout(() => setAnimIn(true), 80);
+  useEffect(()=>{
+    setTimeout(()=>setAnimIn(true),80);
     fetchData();
-    pollRef.current = setInterval(fetchData, 4000);
-    return () => clearInterval(pollRef.current);
-  }, []);
+    pollRef.current = setInterval(fetchData,4000);
+    return ()=>clearInterval(pollRef.current);
+  },[]);
 
   const triggerScan = async () => {
     if (data.scanning) return;
     try {
-      const r = await fetch("/api/scan", { method: "POST" });
+      const r = await fetch("/api/scan",{method:"POST"});
       if (!r.ok) throw new Error(await r.text());
       clearInterval(pollRef.current);
-      pollRef.current = setInterval(fetchData, 1500);
+      pollRef.current = setInterval(fetchData,1500);
       fetchData();
-    } catch(e) {
-      setError(`Scan fehlgeschlagen: ${e.message}`);
-    }
+    } catch(e) { setError(`Scan fehlgeschlagen: ${e.message}`); }
   };
 
   const candidates = (data.candidates||[])
-    .filter(c => filter==="all" || c.status===filter)
-    .sort((a,b) => {
-      if (sort==="tps")    return (b.tps||0)-(a.tps||0);
-      if (sort==="ttft")   return (a.ttft||99)-(b.ttft||99);
-      if (sort==="status") return a.status.localeCompare(b.status);
+    .filter(c=>filter==="all"||c.status===filter)
+    .sort((a,b)=>{
+      if(sort==="tps")    return (b.tps||0)-(a.tps||0);
+      if(sort==="ttft")   return (a.ttft||99)-(b.ttft||99);
+      if(sort==="status") return a.status.localeCompare(b.status);
       return 0;
     });
 
   const added  = (data.candidates||[]).filter(c=>c.status==="added").length;
   const failed = (data.candidates||[]).filter(c=>c.status==="failed").length;
-  const logLines = Array.isArray(data.log) ? data.log : (data.log||"").split("\n");
+  const logLines = Array.isArray(data.log)?data.log:(data.log||"").split("\n");
 
   return (
-    <div style={{
-      minHeight:"100vh", padding:"20px 24px",
-      background:"#070711",
+    <div style={{minHeight:"100vh",padding:"20px 24px",background:"#070711",
       backgroundImage:"radial-gradient(ellipse at 15% 15%,#00ff881a 0%,transparent 45%),radial-gradient(ellipse at 85% 85%,#0044ff0c 0%,transparent 45%)",
-      opacity: animIn?1:0, transition:"opacity 0.45s ease",
-    }}>
+      opacity:animIn?1:0,transition:"opacity 0.45s ease"}}>
 
-      {/* ── Header ─────────────────────────────────────── */}
+      {/* Header */}
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:20}}>
         <div>
-          <div style={{fontFamily:"'Orbitron',monospace",fontSize:20,fontWeight:900,
-            color:"#00ff88",letterSpacing:4,textShadow:"0 0 24px #00ff8855"}}>
+          <div style={{fontFamily:"'Orbitron',monospace",fontSize:20,fontWeight:900,color:"#00ff88",letterSpacing:4,textShadow:"0 0 24px #00ff8855"}}>
             OLLAMA<span style={{color:"#fff"}}>SCOUT</span>
           </div>
-          <div style={{color:"#2a2a3a",fontSize:9,letterSpacing:3,marginTop:2}}>
-            SHODAN → BENCHMARK → LITELLM
-          </div>
+          <div style={{color:"#2a2a3a",fontSize:9,letterSpacing:3,marginTop:2}}>SHODAN → BENCHMARK → LITELLM</div>
         </div>
-        <div style={{display:"flex",alignItems:"center",gap:12}}>
-          {error && (
-            <span style={{color:"#ff4466",fontSize:10,animation:"pulse 2s infinite"}}>{error}</span>
-          )}
-          {data.lastScan && (
-            <div style={{textAlign:"right"}}>
-              <div style={{color:"#222",fontSize:9,letterSpacing:1}}>LAST SCAN</div>
-              <div style={{color:"#444",fontSize:10}}>
-                {new Date(data.lastScan).toLocaleString("de-DE")}
-              </div>
-            </div>
-          )}
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          {error&&<span style={{color:"#ff4466",fontSize:10,animation:"pulse 2s infinite"}}>{error}</span>}
+          {data.lastScan&&<div style={{textAlign:"right"}}>
+            <div style={{color:"#222",fontSize:9,letterSpacing:1}}>LAST SCAN</div>
+            <div style={{color:"#444",fontSize:10}}>{new Date(data.lastScan).toLocaleString("de-DE")}</div>
+          </div>}
+          <button className="btn" onClick={()=>setShowManual(true)} style={{
+            background:"#4488ff18",border:"1px solid #4488ff44",color:"#4488ff",
+            borderRadius:8,padding:"9px 16px",fontSize:11,letterSpacing:1,fontWeight:700,
+          }}>+ MANUAL</button>
           <button className="btn" onClick={triggerScan} disabled={data.scanning} style={{
-            background: data.scanning?"#0d0d1a":"#00ff8818",
+            background:data.scanning?"#0d0d1a":"#00ff8818",
             border:`1px solid ${data.scanning?"#222":"#00ff8844"}`,
-            color: data.scanning?"#444":"#00ff88",
-            borderRadius:8, padding:"9px 20px",
-            fontSize:11, letterSpacing:1.5, fontWeight:700,
+            color:data.scanning?"#444":"#00ff88",
+            borderRadius:8,padding:"9px 20px",fontSize:11,letterSpacing:1.5,fontWeight:700,
           }}>
-            {data.scanning
-              ? <span style={{animation:"pulse 1s infinite"}}>● SCANNING…</span>
-              : "▶ RUN SCAN"}
+            {data.scanning?<span style={{animation:"pulse 1s infinite"}}>● SCANNING…</span>:"▶ RUN SCAN"}
           </button>
         </div>
       </div>
 
-      {/* ── Stats ──────────────────────────────────────── */}
-      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:16}}
-           className="fade-up">
-        {[
-          ["HOSTS SCANNED",    data.hostsScanned||0, "#4488ff"],
-          ["CANDIDATES",       (data.candidates||[]).length, "#ffaa00"],
-          ["ADDED TO LITELLM", added,  "#00ff88"],
-          ["FAILED BENCHMARK", failed, "#ff4466"],
-        ].map(([label,val,color]) => (
-          <div key={label} style={{background:"#0a0a18",border:`1px solid ${color}18`,
-            borderLeft:`3px solid ${color}`,borderRadius:10,padding:"12px 16px"}}>
+      {/* Stats */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:16}} className="fade-up">
+        {[["HOSTS SCANNED",data.hostsScanned||0,"#4488ff"],["CANDIDATES",(data.candidates||[]).length,"#ffaa00"],["ADDED TO LITELLM",added,"#00ff88"],["FAILED BENCHMARK",failed,"#ff4466"]].map(([label,val,color])=>(
+          <div key={label} style={{background:"#0a0a18",border:`1px solid ${color}18`,borderLeft:`3px solid ${color}`,borderRadius:10,padding:"12px 16px"}}>
             <div style={{color:"#333",fontSize:8,letterSpacing:2,marginBottom:4}}>{label}</div>
-            <div style={{color,fontSize:28,fontWeight:900,fontFamily:"'Orbitron',monospace",
-              textShadow:`0 0 12px ${color}44`}}>{val}</div>
+            <div style={{color,fontSize:28,fontWeight:900,fontFamily:"'Orbitron',monospace",textShadow:`0 0 12px ${color}44`}}>{val}</div>
           </div>
         ))}
       </div>
 
-      {/* ── Main grid ──────────────────────────────────── */}
+      {/* Main grid */}
       <div style={{display:"grid",gridTemplateColumns:"1fr 300px",gap:14}}>
-
         {/* Table */}
         <div style={{background:"#09091a",border:"1px solid #12122a",borderRadius:12,overflow:"hidden"}}>
-
-          {/* Controls */}
-          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",
-            padding:"9px 14px",borderBottom:"1px solid #12122a",background:"#0b0b1e"}}>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"9px 14px",borderBottom:"1px solid #12122a",background:"#0b0b1e"}}>
             <div style={{display:"flex",gap:5}}>
-              {["all","added","failed"].map(f => (
-                <button key={f} className="pill" onClick={()=>setFilter(f)} style={{
-                  background: filter===f?"#00ff8814":"transparent",
-                  border:`1px solid ${filter===f?"#00ff8844":"#1a1a2e"}`,
-                  color: filter===f?"#00ff88":"#444",
-                  borderRadius:5,padding:"3px 11px",
-                  fontSize:9,letterSpacing:1.5,textTransform:"uppercase",
-                }}>{f}</button>
+              {["all","added","failed"].map(f=>(
+                <button key={f} className="pill" onClick={()=>setFilter(f)} style={{background:filter===f?"#00ff8814":"transparent",border:`1px solid ${filter===f?"#00ff8844":"#1a1a2e"}`,color:filter===f?"#00ff88":"#444",borderRadius:5,padding:"3px 11px",fontSize:9,letterSpacing:1.5,textTransform:"uppercase"}}>{f}</button>
               ))}
             </div>
             <div style={{display:"flex",gap:5,alignItems:"center"}}>
               <span style={{color:"#222",fontSize:9,letterSpacing:1}}>SORT</span>
-              {["tps","ttft","status"].map(s => (
-                <button key={s} className="pill" onClick={()=>setSort(s)} style={{
-                  background: sort===s?"#4488ff14":"transparent",
-                  border:`1px solid ${sort===s?"#4488ff44":"#1a1a2e"}`,
-                  color: sort===s?"#4488ff":"#444",
-                  borderRadius:5,padding:"3px 10px",
-                  fontSize:9,letterSpacing:1.5,textTransform:"uppercase",
-                }}>{s}</button>
+              {["tps","ttft","status"].map(s=>(
+                <button key={s} className="pill" onClick={()=>setSort(s)} style={{background:sort===s?"#4488ff14":"transparent",border:`1px solid ${sort===s?"#4488ff44":"#1a1a2e"}`,color:sort===s?"#4488ff":"#444",borderRadius:5,padding:"3px 10px",fontSize:9,letterSpacing:1.5,textTransform:"uppercase"}}>{s}</button>
               ))}
             </div>
           </div>
-
-          {/* Header */}
-          <div style={{display:"grid",gridTemplateColumns:"26px 1fr 110px 80px 72px 72px",
-            padding:"7px 14px",borderBottom:"1px solid #0f0f1f",color:"#222",fontSize:8,letterSpacing:2}}>
-            <span>#</span><span>MODEL · HOST</span>
-            <span>TPS</span><span>TTFT</span><span>COUNTRY</span><span>STATUS</span>
+          <div style={{display:"grid",gridTemplateColumns:"26px 1fr 110px 80px 72px 72px",padding:"7px 14px",borderBottom:"1px solid #0f0f1f",color:"#222",fontSize:8,letterSpacing:2}}>
+            <span>#</span><span>MODEL · HOST</span><span>TPS</span><span>TTFT</span><span>COUNTRY</span><span>STATUS</span>
           </div>
-
-          {/* Rows */}
-          {candidates.length === 0 ? (
-            <div style={{padding:"40px 0",textAlign:"center",fontSize:12,color:"#1a1a2e"}}>
-              {data.scanning
-                ? <span style={{color:"#00ff8833",animation:"pulse 1.5s infinite"}}>Scanning…</span>
-                : `No results for "${filter}"`}
-            </div>
-          ) : candidates.map((c,i) => (
-            <div key={c.id} className="row-item" onClick={()=>setSelected(c)}
-              style={{display:"grid",gridTemplateColumns:"26px 1fr 110px 80px 72px 72px",
-                padding:"9px 14px",borderBottom:"1px solid #0b0b18",
-                borderLeft:"2px solid transparent",
-                background:i%2===0?"#09091a":"#0b0b1e",
-                alignItems:"center",
-                animation:`fadeUp 0.35s ease ${i*0.04}s both`,
-              }}>
-              <span style={{color:"#222",fontSize:10}}>{i+1}</span>
-              <div>
-                <div style={{color:"#d0d0e0",fontSize:12,fontWeight:500}}>{c.model}</div>
-                <div style={{color:"#2a2a3a",fontSize:10,marginTop:1}}>
-                  {c.ip}:{c.port} · {(c.org||"").slice(0,22)}
+          {candidates.length===0
+            ?<div style={{padding:"40px 0",textAlign:"center",fontSize:12,color:"#1a1a2e"}}>
+               {data.scanning?<span style={{color:"#00ff8833",animation:"pulse 1.5s infinite"}}>Scanning…</span>:`No results for "${filter}"`}
+             </div>
+            :candidates.map((c,i)=>(
+              <div key={c.id} className="row-item" onClick={()=>setSelected(c)}
+                style={{display:"grid",gridTemplateColumns:"26px 1fr 110px 80px 72px 72px",padding:"9px 14px",borderBottom:"1px solid #0b0b18",borderLeft:"2px solid transparent",background:i%2===0?"#09091a":"#0b0b1e",alignItems:"center",animation:`fadeUp 0.35s ease ${i*0.04}s both`}}>
+                <span style={{color:"#222",fontSize:10}}>{i+1}</span>
+                <div>
+                  <div style={{display:"flex",alignItems:"center",gap:6}}>
+                    <span style={{color:"#d0d0e0",fontSize:12,fontWeight:500}}>{c.model}</span>
+                    {c.manual&&<span style={{color:"#4488ff",fontSize:8,border:"1px solid #4488ff33",borderRadius:3,padding:"1px 4px"}}>MANUAL</span>}
+                  </div>
+                  <div style={{color:"#2a2a3a",fontSize:10,marginTop:1}}>{c.ip}:{c.port} · {(c.org||"").slice(0,22)}</div>
                 </div>
+                <TpsBar value={c.tps||0}/>
+                <span style={{fontSize:12,color:c.ttft<=5?"#00ff88":c.ttft<=8?"#ffaa00":"#ff4466"}}>{c.ttft!=null?`${c.ttft.toFixed(2)}s`:"—"}</span>
+                <span style={{fontSize:13}}>{FLAG[c.country]||"🌐"} <span style={{color:"#444",fontSize:9}}>{c.country}</span></span>
+                <Badge status={c.status}/>
               </div>
-              <TpsBar value={c.tps||0} />
-              <span style={{fontSize:12,color:c.ttft<=8?"#00ff88":"#ff4466"}}>
-                {c.ttft!=null?`${c.ttft.toFixed(2)}s`:"—"}
-              </span>
-              <span style={{fontSize:13}}>{FLAG[c.country]||"🌐"} <span style={{color:"#444",fontSize:9}}>{c.country}</span></span>
-              <Badge status={c.status} />
-            </div>
-          ))}
+            ))
+          }
         </div>
 
         {/* Right panel */}
-        <div style={{background:"#09091a",border:"1px solid #12122a",borderRadius:12,
-          overflow:"hidden",display:"flex",flexDirection:"column"}}>
-
-          {/* Log header */}
-          <div style={{padding:"9px 14px",borderBottom:"1px solid #12122a",background:"#0b0b1e",
-            display:"flex",justifyContent:"space-between",alignItems:"center",
-            color:"#222",fontSize:8,letterSpacing:2}}>
+        <div style={{background:"#09091a",border:"1px solid #12122a",borderRadius:12,overflow:"hidden",display:"flex",flexDirection:"column"}}>
+          <div style={{padding:"9px 14px",borderBottom:"1px solid #12122a",background:"#0b0b1e",display:"flex",justifyContent:"space-between",alignItems:"center",color:"#222",fontSize:8,letterSpacing:2}}>
             <span>SCAN LOG</span>
-            {data.scanning && <span style={{color:"#00ff88",animation:"pulse 1s infinite",fontSize:9}}>● LIVE</span>}
+            {data.scanning&&<span style={{color:"#00ff88",animation:"pulse 1s infinite",fontSize:9}}>● LIVE</span>}
           </div>
-
-          <ScanLog lines={logLines} scanning={data.scanning} />
-
-          {/* LiteLLM status */}
+          <ScanLog lines={logLines} scanning={data.scanning}/>
           <div style={{padding:14,borderTop:"1px solid #0f0f1f"}}>
             <div style={{color:"#222",fontSize:8,letterSpacing:2,marginBottom:9}}>LITELLM</div>
             <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:9}}>
-              <div style={{width:6,height:6,borderRadius:"50%",background:"#00ff88",
-                boxShadow:"0 0 7px #00ff88",animation:"glow 2s infinite"}}/>
-              <span style={{color:"#00ff88",fontSize:11}}>{(data.litellmUrl||"hanse8.pitago.de")}</span>
+              <div style={{width:6,height:6,borderRadius:"50%",background:"#00ff88",boxShadow:"0 0 7px #00ff88",animation:"glow 2s infinite"}}/>
+              <span style={{color:"#00ff88",fontSize:11}}>{data.litellmUrl||"hanse8.pitago.de"}</span>
             </div>
             {(data.candidates||[]).filter(c=>c.status==="added").slice(0,5).map(c=>(
-              <div key={c.id} style={{color:"#1a3a22",fontSize:9,lineHeight:1.9,
-                overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
-                ✓ {c.litellmName||c.model}
-              </div>
+              <div key={c.id} style={{color:"#1a3a22",fontSize:9,lineHeight:1.9,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>✓ {c.litellmName||c.model}</div>
             ))}
-            {added>5 && <div style={{color:"#1a3a22",fontSize:9}}>+{added-5} more</div>}
-            {added===0 && <div style={{color:"#1a1a2e",fontSize:9}}>No models registered yet</div>}
+            {added>5&&<div style={{color:"#1a3a22",fontSize:9}}>+{added-5} more</div>}
+            {added===0&&<div style={{color:"#1a1a2e",fontSize:9}}>No models registered yet</div>}
           </div>
-
-          {/* Thresholds */}
           <div style={{padding:"10px 14px",borderTop:"1px solid #0f0f1f",background:"#07070f"}}>
             <div style={{color:"#222",fontSize:8,letterSpacing:2,marginBottom:8}}>THRESHOLDS</div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
-              {[["MAX TTFT","8.0s","#ffaa00"],["MIN TPS","5.0","#4488ff"]].map(([l,v,c])=>(
+              {[["MAX TTFT","5.0s","#ffaa00"],["MIN TPS","8.0","#4488ff"]].map(([l,v,c])=>(
                 <div key={l} style={{background:"#0a0a18",borderRadius:6,padding:"6px 10px"}}>
                   <div style={{color:"#222",fontSize:7,letterSpacing:1}}>{l}</div>
                   <div style={{color:c,fontSize:14,fontWeight:700,fontFamily:"'Orbitron',monospace"}}>{v}</div>
@@ -415,17 +510,17 @@ function App() {
         </div>
       </div>
 
-      {/* Footer */}
       <div style={{marginTop:14,color:"#111622",fontSize:8,letterSpacing:2,textAlign:"center"}}>
         OLLAMA SCOUT v1.0 · CONNECTASSET · CLICK ROW FOR DETAILS · AUTO-REFRESH 4s
       </div>
 
-      {selected && <Modal c={selected} onClose={()=>setSelected(null)} />}
+      {selected&&<DetailModal c={selected} onClose={()=>setSelected(null)}/>}
+      {showManual&&<ManualModal onClose={()=>setShowManual(false)} onAdded={fetchData}/>}
     </div>
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
 </script>
 </body>
 </html>
