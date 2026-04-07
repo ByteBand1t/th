@@ -6,8 +6,8 @@ from typing import Callable, Optional
 import httpx
 from shodan_scanner import OllamaHost
 
-TAGS_TIMEOUT  = 6.0
-BENCH_TIMEOUT = 120.0
+TAGS_TIMEOUT  = 4.0
+BENCH_TIMEOUT = 45.0
 
 # Persistent blocklist for hosts that returned 401
 BLOCKLIST_FILE = Path("/data/blocked_hosts.json")
