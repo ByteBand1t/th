@@ -27,12 +27,14 @@ DATA_DIR.mkdir(exist_ok=True)
 
 def load_config() -> dict:
     raw = CONFIG_FILE.read_text()
+
     def _expand(m):
         expr = m.group(1)
         if ":-" in expr:
             var, default = expr.split(":-", 1)
             return os.environ.get(var, default)
         return os.environ.get(expr, m.group(0))
+
     return yaml.safe_load(re.sub(r"\$\{([^}]+)\}", _expand, raw))
 
 
@@ -49,15 +51,15 @@ def main():
         log.append(msg)
 
     results = {
-        "lastScan": datetime.now(timezone.utc).isoformat(),
-        "status": "running",
+        "lastScan":    datetime.now(timezone.utc).isoformat(),
+        "status":      "running",
         "hostsScanned": 0,
-        "candidates": [],
-        "log": log,
+        "candidates":  [],
+        "log":         log,
     }
     save(results)
 
-    # Step 1 — Shodan
+    # ── Step 1 — Shodan ──────────────────────────────────────
     L("Step 1 — Shodan Discovery")
     sc = cfg["shodan"]
     hosts = discover_hosts(
@@ -76,65 +78,87 @@ def main():
         save(results)
         return
 
-    # Step 2 — Model discovery
+    # ── Step 2 — Model Discovery ─────────────────────────────
     L("\nStep 2 — Model Discovery")
-    targets = cfg.get("target_models", [])
-    candidates = discover_candidates(hosts, targets, log_fn=L)
-    L(f"\n{len(candidates)} matching model(s) found.")
+    targets          = cfg.get("target_models", [])
+    exclude_patterns = cfg.get("exclude_model_patterns", [])
+    large_threshold  = float(cfg.get("large_model_threshold_b", 100))
+
+    candidates = discover_candidates(
+        hosts,
+        targets,
+        exclude_model_patterns=exclude_patterns,
+        large_threshold_b=large_threshold,
+        log_fn=L,
+    )
 
     if not candidates:
         results["status"] = "done"
         save(results)
         return
 
-    # Step 3 — Benchmark
-    bc = cfg.get("benchmark", {})
+    # ── Step 3 — Benchmark ───────────────────────────────────
+    bc  = cfg.get("benchmark", {})
+    bcl = cfg.get("benchmark_large", {})
+
     if bc.get("enabled", True):
         L("\nStep 3 — Benchmark")
+
+        normal_count = sum(1 for c in candidates if not c.is_large)
+        large_count  = sum(1 for c in candidates if c.is_large)
+        L(f"  {normal_count} normal candidates, {large_count} large candidates (≥{large_threshold}B)")
+
         for c in candidates:
             benchmark_candidate(
                 c,
                 prompt=bc.get("prompt", "Hallo, wie geht es dir?"),
-                max_ttft=float(bc.get("max_ttft_seconds", 8.0)),
-                min_tps=float(bc.get("min_tokens_per_second", 5.0)),
+                max_ttft=float(bc.get("max_ttft_seconds", 15.0)),
+                min_tps=float(bc.get("min_tokens_per_second", 3.0)),
                 min_response_len=int(bc.get("min_response_length", 20)),
                 runs=int(bc.get("runs", 2)),
+                max_ttft_large=float(bcl.get("max_ttft_seconds", 120.0)),
+                min_tps_large=float(bcl.get("min_tokens_per_second", 0.3)),
+                runs_large=int(bcl.get("runs", 1)),
                 log_fn=L,
             )
     else:
         for c in candidates:
             c.benchmark_ok = True
 
-    # Step 4 — LiteLLM
+    # ── Step 4 — LiteLLM Registration ────────────────────────
     L("\nStep 4 — LiteLLM Registration")
-    lc = cfg["litellm"]
+    lc  = cfg["litellm"]
     mgr = LiteLLMManager(
-        lc["base_url"], lc["master_key"],
+        lc["base_url"],
+        lc["master_key"],
         cfg.get("litellm_model_tag", "ollama-scout"),
         log_fn=L,
     )
+
     passing = [c for c in candidates if c.benchmark_ok]
     L(f"{len(passing)}/{len(candidates)} passed.")
+
     for c in passing:
         mgr.add_model(c)
 
-    # Save
+    # ── Save results ─────────────────────────────────────────
     results["status"] = "done"
-    results["log"] = log
+    results["log"]    = log
     results["candidates"] = [
         {
-            "id": i + 1,
-            "ip": c.host.ip,
-            "port": c.host.port,
-            "country": c.host.country,
-            "org": c.host.org,
-            "model": c.model_name,
-            "matched": c.matched_target,
-            "ttft": round(c.ttft, 3) if c.ttft else None,
-            "tps": round(c.tokens_per_second, 1) if c.tokens_per_second else None,
-            "response": c.response_text,
-            "status": "added" if c.benchmark_ok else "failed",
-            "failReason": c.benchmark_error if not c.benchmark_ok else None,
+            "id":          i + 1,
+            "ip":          c.host.ip,
+            "port":        c.host.port,
+            "country":     c.host.country,
+            "org":         c.host.org,
+            "model":       c.model_name,
+            "matched":     c.matched_target,
+            "isLarge":     c.is_large,
+            "ttft":        round(c.ttft, 3) if c.ttft else None,
+            "tps":         round(c.tokens_per_second, 1) if c.tokens_per_second else None,
+            "response":    c.response_text,
+            "status":      "added" if c.benchmark_ok else "failed",
+            "failReason":  c.benchmark_error if not c.benchmark_ok else None,
             "litellmName": c.litellm_model_name if c.benchmark_ok else None,
         }
         for i, c in enumerate(candidates)
