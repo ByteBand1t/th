@@ -8,8 +8,8 @@ from shodan_scanner import OllamaHost
 
 TAGS_TIMEOUT  = 4.0
 BENCH_TIMEOUT = 45.0
+BENCH_TIMEOUT_LARGE = 300.0
 
-# Persistent blocklist for hosts that returned 401
 BLOCKLIST_FILE = Path("/data/blocked_hosts.json")
 
 
@@ -24,19 +24,34 @@ def _load_blocklist() -> set[str]:
 
 def _add_to_blocklist(ip: str, port: int, reason: str):
     blocked = _load_blocklist()
-    key = f"{ip}:{port}"
-    blocked.add(key)
+    blocked.add(f"{ip}:{port}")
     BLOCKLIST_FILE.write_text(json.dumps(sorted(blocked), indent=2))
 
 
 def _extract_size_b(model_name: str) -> float:
-    m = re.search(r":(\d+(?:\.\d+)?)b", model_name.lower())
+    name = model_name.lower()
+    # MoE format: 8x7b → aktiver Teil
+    m = re.search(r"\d+x(\d+(?:\.\d+)?)b", name)
     if m:
         return float(m.group(1))
-    m = re.search(r"(\d+(?:\.\d+)?)b", model_name.lower())
+    # Standard :32b oder -32b
+    m = re.search(r"[:\-](\d+(?:\.\d+)?)b", name)
+    if m:
+        return float(m.group(1))
+    # Fallback
+    m = re.search(r"(\d+(?:\.\d+)?)b", name)
     if m:
         return float(m.group(1))
     return 0.0
+
+
+def _is_cloud_model(model_name: str, exclude_patterns: list[str]) -> bool:
+    """Returns True if model name matches a cloud-proxy pattern."""
+    name_lower = model_name.lower()
+    for pattern in exclude_patterns:
+        if pattern.lower() in name_lower:
+            return True
+    return False
 
 
 @dataclass
@@ -45,6 +60,7 @@ class ModelCandidate:
     model_name: str
     matched_target: str
     min_size_b: float = 0.0
+    is_large: bool = False
     ttft: Optional[float] = None
     tokens_per_second: Optional[float] = None
     response_text: Optional[str] = None
@@ -76,7 +92,7 @@ def _get_tags(host: OllamaHost) -> list[dict] | None:
     try:
         r = httpx.get(
             f"{host.base_url}/api/tags",
-            timeout=httpx.Timeout(4.0, connect=2.0)
+            timeout=httpx.Timeout(4.0, connect=2.0),
         )
         if r.status_code == 200:
             return r.json().get("models", [])
@@ -89,10 +105,6 @@ def _get_tags(host: OllamaHost) -> list[dict] | None:
 
 
 def _check_generate_auth(host: OllamaHost, model: str) -> bool:
-    """
-    Quick probe: send a minimal generate request and check for 401.
-    Returns True if accessible, False if blocked.
-    """
     try:
         payload = {"model": model, "prompt": "Hi", "stream": False,
                    "options": {"num_predict": 1}}
@@ -102,12 +114,16 @@ def _check_generate_auth(host: OllamaHost, model: str) -> bool:
             return False
         return True
     except Exception:
-        # Timeout or connection error — not a 401, try benchmark anyway
         return True
 
 
-def discover_candidates(hosts, target_models, log_fn=print):
-    """target_models: list of dicts or strings."""
+def discover_candidates(
+    hosts,
+    target_models,
+    exclude_model_patterns: list[str] = None,
+    large_threshold_b: float = 100.0,
+    log_fn: Callable = print,
+):
     targets = []
     for t in target_models:
         if isinstance(t, str):
@@ -115,13 +131,14 @@ def discover_candidates(hosts, target_models, log_fn=print):
         else:
             targets.append({"name": t["name"], "min_size_b": float(t.get("min_size_b", 0))})
 
+    exclude_patterns = exclude_model_patterns or []
     blocked = _load_blocklist()
     candidates = []
 
     for host in hosts:
         key = f"{host.ip}:{host.port}"
         if key in blocked:
-            log_fn(f"  ⊘ {host} — in blocklist (previously 401)")
+            log_fn(f"  ⊘ {host} — in blocklist")
             continue
 
         tags = _get_tags(host)
@@ -132,18 +149,27 @@ def discover_candidates(hosts, target_models, log_fn=print):
         matched = 0
         for m in tags:
             name = m.get("name", "")
+
+            # Cloud-Modelle überspringen
+            if _is_cloud_model(name, exclude_patterns):
+                log_fn(f"  ⊘ {name} @ {host.ip} — cloud proxy, skipping")
+                continue
+
             for t in targets:
                 if t["name"].lower() in name.lower():
                     size = _extract_size_b(name)
                     if size < t["min_size_b"]:
                         log_fn(f"  ⊘ {name} @ {host.ip} — too small ({size}B < {t['min_size_b']}B)")
                         break
+                    is_large = size >= large_threshold_b
                     candidates.append(ModelCandidate(
                         host=host, model_name=name,
                         matched_target=t["name"],
                         min_size_b=t["min_size_b"],
+                        is_large=is_large,
                     ))
-                    log_fn(f"  ✓ {name} on {host} ({size}B)")
+                    label = f"({size}B) {'[LARGE]' if is_large else ''}"
+                    log_fn(f"  ✓ {name} on {host} {label}")
                     matched += 1
                     break
 
@@ -151,11 +177,14 @@ def discover_candidates(hosts, target_models, log_fn=print):
             avail = [m.get("name", "") for m in tags]
             log_fn(f"  – {host} — no targets (has: {', '.join(avail[:3])})")
 
-    log_fn(f"\n  Blocklist has {len(blocked)} host(s) — skipped automatically")
+    normal = sum(1 for c in candidates if not c.is_large)
+    large  = sum(1 for c in candidates if c.is_large)
+    log_fn(f"\n  {len(candidates)} candidates: {normal} normal, {large} large (≥{large_threshold_b}B)")
+    log_fn(f"  Blocklist: {len(blocked)} hosts skipped")
     return candidates
 
 
-def _stream(base_url, model, prompt):
+def _stream(base_url, model, prompt, timeout):
     payload = {
         "model": model, "prompt": prompt,
         "stream": True, "options": {"num_predict": 80},
@@ -164,8 +193,7 @@ def _stream(base_url, model, prompt):
     ttft, tokens, text = None, 0, ""
 
     with httpx.stream("POST", f"{base_url}/api/generate",
-                      json=payload, timeout=BENCH_TIMEOUT) as r:
-        # Check for 401 before reading body
+                      json=payload, timeout=timeout) as r:
         if r.status_code == 401:
             raise PermissionError("401 Unauthorized")
         r.raise_for_status()
@@ -189,35 +217,61 @@ def _stream(base_url, model, prompt):
     return (ttft or elapsed), (tokens / elapsed if elapsed else 0), text
 
 
-def benchmark_candidate(c, prompt, max_ttft, min_tps, min_response_len,
-                        runs=2, log_fn=print):
-    log_fn(f"  Benchmarking {c.model_name} @ {c.host.ip}")
+def benchmark_candidate(
+    c: ModelCandidate,
+    prompt: str,
+    max_ttft: float,
+    min_tps: float,
+    min_response_len: int,
+    runs: int = 2,
+    # Large-model overrides
+    max_ttft_large: float = 120.0,
+    min_tps_large: float = 0.3,
+    runs_large: int = 1,
+    log_fn: Callable = print,
+) -> ModelCandidate:
+
+    # Wähle Profil basierend auf Modellgröße
+    if c.is_large:
+        eff_max_ttft      = max_ttft_large
+        eff_min_tps       = min_tps_large
+        eff_runs          = runs_large
+        eff_timeout       = BENCH_TIMEOUT_LARGE
+        log_fn(f"  Benchmarking [LARGE] {c.model_name} @ {c.host.ip} "
+               f"(TTFT≤{eff_max_ttft}s, TPS≥{eff_min_tps}, {eff_runs} run, timeout={eff_timeout}s)")
+    else:
+        eff_max_ttft      = max_ttft
+        eff_min_tps       = min_tps
+        eff_runs          = runs
+        eff_timeout       = BENCH_TIMEOUT
+        log_fn(f"  Benchmarking {c.model_name} @ {c.host.ip}")
 
     # Auth pre-check
     if not _check_generate_auth(c.host, c.model_name):
-        c.benchmark_ok = False
+        c.benchmark_ok    = False
         c.benchmark_error = "401 Unauthorized — added to blocklist"
         log_fn(f"    ✗ {c.benchmark_error}")
         return c
 
     ttfts, tpss, last = [], [], ""
 
-    for i in range(runs):
+    for i in range(eff_runs):
         try:
-            ttft, tps, text = _stream(c.host.base_url, c.model_name, prompt)
+            ttft, tps, text = _stream(
+                c.host.base_url, c.model_name, prompt, eff_timeout
+            )
             ttfts.append(ttft)
             tpss.append(tps)
             last = text
             log_fn(f"    Run {i+1}: TTFT={ttft:.2f}s  TPS={tps:.1f}  chars={len(text)}")
         except PermissionError as e:
-            # 401 during streaming — blocklist and abort
             _add_to_blocklist(c.host.ip, c.host.port, str(e))
-            c.benchmark_ok = False
+            c.benchmark_ok    = False
             c.benchmark_error = str(e)
-            log_fn(f"    ✗ {e} — added to blocklist")
+            log_fn(f"    ✗ {e}")
             return c
         except Exception as e:
-            c.benchmark_ok = False
+            c.benchmark_ok    = False
             c.benchmark_error = str(e)
             log_fn(f"    Error: {e}")
             return c
@@ -227,16 +281,16 @@ def benchmark_candidate(c, prompt, max_ttft, min_tps, min_response_len,
     c.ttft, c.tokens_per_second, c.response_text = avg_ttft, avg_tps, last
 
     reasons = []
-    if avg_ttft > max_ttft:          reasons.append(f"TTFT {avg_ttft:.1f}s > {max_ttft}s")
-    if avg_tps  < min_tps:           reasons.append(f"TPS {avg_tps:.1f} < {min_tps}")
-    if len(last) < min_response_len: reasons.append(f"response too short ({len(last)} chars)")
+    if avg_ttft > eff_max_ttft:          reasons.append(f"TTFT {avg_ttft:.1f}s > {eff_max_ttft}s")
+    if avg_tps  < eff_min_tps:           reasons.append(f"TPS {avg_tps:.2f} < {eff_min_tps}")
+    if len(last) < min_response_len:     reasons.append(f"response too short ({len(last)} chars)")
 
     if reasons:
-        c.benchmark_ok = False
+        c.benchmark_ok    = False
         c.benchmark_error = "; ".join(reasons)
         log_fn(f"    ✗ FAIL: {c.benchmark_error}")
     else:
         c.benchmark_ok = True
-        log_fn(f"    ✓ PASS  TTFT={avg_ttft:.2f}s  TPS={avg_tps:.1f}")
+        log_fn(f"    ✓ PASS  TTFT={avg_ttft:.2f}s  TPS={avg_tps:.2f}")
 
     return c
