@@ -51,11 +51,11 @@ def main():
         log.append(msg)
 
     results = {
-        "lastScan":    datetime.now(timezone.utc).isoformat(),
-        "status":      "running",
+        "lastScan":     datetime.now(timezone.utc).isoformat(),
+        "status":       "running",
         "hostsScanned": 0,
-        "candidates":  [],
-        "log":         log,
+        "candidates":   [],
+        "log":          log,
     }
     save(results)
 
@@ -91,6 +91,7 @@ def main():
         large_threshold_b=large_threshold,
         log_fn=L,
     )
+    L(f"\n{len(candidates)} matching model(s) found.")
 
     if not candidates:
         results["status"] = "done"
@@ -106,7 +107,7 @@ def main():
 
         normal_count = sum(1 for c in candidates if not c.is_large)
         large_count  = sum(1 for c in candidates if c.is_large)
-        L(f"  {normal_count} normal candidates, {large_count} large candidates (≥{large_threshold}B)")
+        L(f"  {normal_count} normal, {large_count} large candidates")
 
         for c in candidates:
             benchmark_candidate(
@@ -119,6 +120,7 @@ def main():
                 max_ttft_large=float(bcl.get("max_ttft_seconds", 120.0)),
                 min_tps_large=float(bcl.get("min_tokens_per_second", 0.3)),
                 runs_large=int(bcl.get("runs", 1)),
+                tool_call_test=bool(bc.get("tool_call_test", True)),
                 log_fn=L,
             )
     else:
@@ -146,20 +148,30 @@ def main():
     results["log"]    = log
     results["candidates"] = [
         {
-            "id":          i + 1,
-            "ip":          c.host.ip,
-            "port":        c.host.port,
-            "country":     c.host.country,
-            "org":         c.host.org,
-            "model":       c.model_name,
-            "matched":     c.matched_target,
-            "isLarge":     c.is_large,
-            "ttft":        round(c.ttft, 3) if c.ttft else None,
-            "tps":         round(c.tokens_per_second, 1) if c.tokens_per_second else None,
-            "response":    c.response_text,
-            "status":      "added" if c.benchmark_ok else "failed",
-            "failReason":  c.benchmark_error if not c.benchmark_ok else None,
-            "litellmName": c.litellm_model_name if c.benchmark_ok else None,
+            "id":            i + 1,
+            "ip":            c.host.ip,
+            "port":          c.host.port,
+            "country":       c.host.country,
+            "org":           c.host.org,
+            "model":         c.model_name,
+            "matched":       c.matched_target,
+            "isLarge":       c.is_large,
+            # Metadata
+            "contextWindow": c.context_window,
+            "quantization":  c.quantization,
+            "quantScore":    c.quant_score,
+            "hasVision":     c.has_vision,
+            "hasTools":      c.has_tools or bool(c.tool_call_ok),
+            "toolCallOk":    c.tool_call_ok,
+            "parameterSize": c.parameter_size,
+            "availability":  c.availability,
+            # Benchmark
+            "ttft":          round(c.ttft, 3) if c.ttft else None,
+            "tps":           round(c.tokens_per_second, 1) if c.tokens_per_second else None,
+            "response":      c.response_text,
+            "status":        "added" if c.benchmark_ok else "failed",
+            "failReason":    c.benchmark_error if not c.benchmark_ok else None,
+            "litellmName":   c.litellm_model_name if c.benchmark_ok else None,
         }
         for i, c in enumerate(candidates)
     ]
