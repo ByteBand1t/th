@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
-"""
-OllamaScout Health Check
-Probes all known-added models, updates status, removes dead ones from LiteLLM.
-"""
+"""OllamaScout Health Check — probes known models, updates availability scores."""
 from __future__ import annotations
-import json, time, os, re, sys
+
+import json, os, re, sys, time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -47,10 +45,8 @@ def save_results(data):
 
 def _quick_bench(ip, port, model):
     payload = {
-        "model": model,
-        "prompt": "Say only: OK",
-        "stream": True,
-        "options": {"num_predict": 10},
+        "model": model, "prompt": "Say only: OK",
+        "stream": True, "options": {"num_predict": 10},
     }
     t0 = time.perf_counter()
     ttft, tokens, text = None, 0, ""
@@ -64,8 +60,7 @@ def _quick_bench(ip, port, model):
             frag = chunk.get("response", "")
             if frag:
                 if ttft is None: ttft = time.perf_counter() - t0
-                tokens += 1
-                text += frag
+                tokens += 1; text += frag
             if chunk.get("done"): break
     elapsed = time.perf_counter() - t0
     return (ttft or elapsed), (tokens / elapsed if elapsed else 0), text
@@ -89,24 +84,31 @@ def _remove_from_litellm(base_url, master_key, model_name, log_fn):
     return False
 
 
+def _update_availability(c: dict, alive: bool):
+    """Update running availability score on the candidate dict."""
+    checks = c.get("availabilityChecks", 0) + 1
+    alive_count = c.get("availabilityAlive", 0) + (1 if alive else 0)
+    c["availabilityChecks"] = checks
+    c["availabilityAlive"]  = alive_count
+    c["availability"]       = round(alive_count / checks, 3)
+
+
 def run_health_check(log_fn=print) -> dict:
     cfg      = load_config()
     lc       = cfg["litellm"]
     bc       = cfg.get("benchmark", {})
-    max_ttft = float(bc.get("max_ttft_seconds", 5.0))
-    min_tps  = float(bc.get("min_tokens_per_second", 8.0))
-    # Slow threshold: 50% worse than limits = warn but keep
-    slow_ttft = max_ttft * 1.5
-    slow_tps  = min_tps  * 0.6
+    max_ttft = float(bc.get("max_ttft_seconds", 15.0)) * 1.5   # warn threshold
+    min_tps  = float(bc.get("min_tokens_per_second", 3.0)) * 0.6
+    # Dead threshold: 2.5x worse than warn
+    dead_ttft = max_ttft * 2.5
+    dead_tps  = min_tps  * 0.4
 
     data       = load_results()
     candidates = data.get("candidates", [])
     to_check   = [c for c in candidates if c.get("status") in ("added", "slow")]
     now        = datetime.now(timezone.utc).isoformat()
 
-    log_fn(f"Health check started — {len(to_check)} models")
-    log_fn(f"Thresholds: TTFT ≤{max_ttft}s (warn ≤{slow_ttft}s) | TPS ≥{min_tps} (warn ≥{slow_tps})")
-
+    log_fn(f"Health check — {len(to_check)} models to check")
     report_results = []
 
     for c in to_check:
@@ -117,51 +119,58 @@ def run_health_check(log_fn=print) -> dict:
 
         log_fn(f"\n  [{model}] @ {ip}:{port}")
 
-        # Stage 1: TCP / /api/tags reachable?
+        # Stage 1: reachable + model still available
         try:
-            r    = httpx.get(f"http://{ip}:{port}/api/tags", timeout=PROBE_TIMEOUT)
+            r    = httpx.get(f"http://{ip}:{port}/api/tags",
+                             timeout=httpx.Timeout(PROBE_TIMEOUT, connect=2.0))
             tags = r.json().get("models", []) if r.status_code == 200 else []
             names = [m.get("name", "") for m in tags]
-            if not any(model == n or model in n or n in model for n in names):
-                raise ValueError(f"Model '{model}' not in /api/tags ({names[:3]})")
+            if not any(model == n or model.split(":")[0] in n for n in names):
+                raise ValueError(f"Model '{model}' not in /api/tags")
         except Exception as e:
-            log_fn(f"    ✗ Unreachable or model gone: {e}")
+            log_fn(f"    ✗ Unreachable: {e}")
             if name: _remove_from_litellm(lc["base_url"], lc["master_key"], name, log_fn)
             c.update({"status": "dead", "deadReason": str(e)})
+            _update_availability(c, False)
             report_results.append({"model": model, "ip": ip, "status": "dead", "reason": str(e)})
             continue
 
-        # Stage 2: Quick benchmark
+        # Stage 2: quick benchmark
         try:
             ttft, tps, _ = _quick_bench(ip, port, model)
             log_fn(f"    TTFT={ttft:.2f}s  TPS={tps:.1f}")
 
-            if ttft > slow_ttft or tps < slow_tps:
-                # Too bad → remove
-                reason = f"TTFT {ttft:.1f}s>{slow_ttft}s" if ttft > slow_ttft else f"TPS {tps:.1f}<{slow_tps}"
-                log_fn(f"    ✗ Too slow: {reason} → removing")
+            if ttft > dead_ttft or tps < dead_tps:
+                reason = f"TTFT {ttft:.1f}s>{dead_ttft:.0f}s" if ttft > dead_ttft else f"TPS {tps:.1f}<{dead_tps:.1f}"
+                log_fn(f"    ✗ Too slow → removing: {reason}")
                 if name: _remove_from_litellm(lc["base_url"], lc["master_key"], name, log_fn)
-                c.update({"status": "dead", "deadReason": reason, "ttft": round(ttft,3), "tps": round(tps,1)})
-                report_results.append({"model": model, "ip": ip, "status": "dead", "reason": reason, "ttft": ttft, "tps": tps})
+                c.update({"status": "dead", "deadReason": reason,
+                          "ttft": round(ttft,3), "tps": round(tps,1)})
+                _update_availability(c, False)
+                report_results.append({"model": model, "ip": ip, "status": "dead",
+                                       "reason": reason, "ttft": ttft, "tps": tps})
 
             elif ttft > max_ttft or tps < min_tps:
-                # Borderline → warn but keep
                 reason = f"TTFT {ttft:.1f}s" if ttft > max_ttft else f"TPS {tps:.1f}"
                 log_fn(f"    ⚠ Slow but keeping: {reason}")
                 c.update({"status": "slow", "slowReason": reason,
                           "ttft": round(ttft,3), "tps": round(tps,1), "lastHealthCheck": now})
-                report_results.append({"model": model, "ip": ip, "status": "slow", "reason": reason, "ttft": ttft, "tps": tps})
-
+                _update_availability(c, True)
+                report_results.append({"model": model, "ip": ip, "status": "slow",
+                                       "reason": reason, "ttft": ttft, "tps": tps})
             else:
-                log_fn(f"    ✓ Healthy")
+                log_fn(f"    ✓ Healthy | avail={c.get('availability', 1.0):.0%}")
                 c.update({"status": "added", "deadReason": None, "slowReason": None,
                           "ttft": round(ttft,3), "tps": round(tps,1), "lastHealthCheck": now})
-                report_results.append({"model": model, "ip": ip, "status": "alive", "ttft": ttft, "tps": tps})
+                _update_availability(c, True)
+                report_results.append({"model": model, "ip": ip, "status": "alive",
+                                       "ttft": ttft, "tps": tps})
 
         except Exception as e:
             log_fn(f"    ✗ Benchmark failed: {e}")
             if name: _remove_from_litellm(lc["base_url"], lc["master_key"], name, log_fn)
             c.update({"status": "dead", "deadReason": str(e)})
+            _update_availability(c, False)
             report_results.append({"model": model, "ip": ip, "status": "dead", "reason": str(e)})
 
     save_results(data)
