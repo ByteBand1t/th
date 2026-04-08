@@ -34,11 +34,20 @@ litellm:
   base_url: "${LITELLM_BASE_URL}"
   master_key: "${LITELLM_MASTER_KEY}"
 
+# Namen die auf Cloud-Proxy-Modelle hinweisen → überspringen
+exclude_model_patterns:
+  - ":cloud"
+  - "-cloud"
+  - "cloud:"
+  - "devstral-2:123b-cloud"
+  - "deepseek-v3.1:671b-cloud"
+  - "deepseek-v3.2:cloud"
+
 target_models:
   - name: qwen3-coder-next
     min_size_b: 0
   - name: qwen3-coder
-    min_size_b: 0
+    min_size_b: 27
   - name: qwen3
     min_size_b: 27
   - name: qwen2.5-coder
@@ -71,5 +80,15 @@ benchmark:
   min_tokens_per_second: 3.0
   min_response_length: 20
   runs: 2
+
+benchmark_large:
+  enabled: true
+  prompt: "Hallo, wie geht es dir?"
+  max_ttft_seconds: 120.0
+  min_tokens_per_second: 0.3
+  min_response_length: 10
+  runs: 1
+
+large_model_threshold_b: 100
 
 litellm_model_tag: "ollama-scout"
