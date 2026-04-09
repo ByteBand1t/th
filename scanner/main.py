@@ -121,6 +121,7 @@ def main():
                 min_tps_large=float(bcl.get("min_tokens_per_second", 0.3)),
                 runs_large=int(bcl.get("runs", 1)),
                 tool_call_test=bool(bc.get("tool_call_test", True)),
+                priority_models=cfg.get("priority_models", []),
                 log_fn=L,
             )
     else:
