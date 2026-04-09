@@ -53,7 +53,7 @@ input[type=checkbox]{accent-color:var(--blue-600);width:15px;height:15px;cursor:
 .table-row:hover{background:var(--gray-50)}
 .table-row:last-child{border-bottom:none}
 .log-area{font-family:'SF Mono','Fira Code',monospace;font-size:11px;line-height:1.7}
-.log-ok{color:var(--green-600)}.log-err{color:var(--red-600)}.log-head{color:var(--blue-600);font-weight:600}.log-dim{color:var(--gray-400)}.log-normal{color:var(--gray-700)}
+.log-ok{color:var(--green-600)}.log-err{color:var(--red-600)}.log-head{color:var(--blue-600);font-weight:600}.log-dim{color:var(--gray-400)}.log-normal{color:var(--gray-700)}.log-amber{color:var(--amber-600)}
 .modal-overlay{position:fixed;inset:0;background:rgba(17,24,39,.5);display:flex;align-items:center;justify-content:center;z-index:100;animation:fadeIn .15s ease}
 .modal-panel{background:var(--white);border-radius:var(--radius-lg);box-shadow:var(--shadow-md),0 20px 40px rgba(0,0,0,.12);width:min(600px,95vw);max-height:90vh;overflow-y:auto;animation:fadeIn .2s ease}
 .modal-wide{background:var(--white);border-radius:var(--radius-lg);box-shadow:var(--shadow-md),0 20px 40px rgba(0,0,0,.12);width:min(700px,95vw);max-height:92vh;overflow-y:auto;animation:fadeIn .2s ease;display:flex;flex-direction:column}
@@ -509,12 +509,61 @@ function SettingsModal({onClose,onSaved}){
   );
 }
 
-/* ── Scan Log ── */
-function ScanLog({lines,scanning}){
+/* ── Live Scan Log (SSE) ── */
+function ScanLog({scanning, healthChecking}){
+  const[lines,setLines]=useState([]);
+  const[connected,setConnected]=useState(false);
   const ref=useRef(null);
-  useEffect(()=>{if(ref.current)ref.current.scrollTop=ref.current.scrollHeight;},[lines]);
-  const cls=l=>/Step \d/.test(l)?"log-head":/[✓]|PASS|Added|complete/.test(l)?"log-ok":/[✗]|FAIL|error|Error/.test(l)?"log-err":/^  /.test(l)?"log-dim":"log-normal";
-  return(<div ref={ref} className="log-area" style={{flex:1,overflowY:"auto",padding:"10px 14px",maxHeight:260,minHeight:70}}>{lines.length===0?<><div className="log-dim">Awaiting scan…</div><div className="log-dim">Click Run scan to start</div></>:lines.map((l,i)=><div key={i} className={cls(l)}>{l||"\u00a0"}</div>)}{scanning&&<span className="log-ok" style={{animation:"blink 1s infinite"}}>▌</span>}</div>);
+  const esRef=useRef(null);
+
+  const cls=l=>{
+    if(/Step \d|Health check/.test(l)) return "log-head";
+    if(/[✓]|PASS|complete|Added|Pool|⭐/.test(l)) return "log-ok";
+    if(/[✗]|FAIL|Error|error|dead|Dead/.test(l)) return "log-err";
+    if(/⚠|Slow|slow/.test(l)) return "log-amber";
+    if(/^  |^    /.test(l)) return "log-dim";
+    return "log-normal";
+  };
+
+  const startStream=()=>{
+    if(esRef.current) esRef.current.close();
+    setLines([]);
+    setConnected(true);
+    const es=new EventSource("/api/log/stream");
+    esRef.current=es;
+    es.onmessage=e=>{
+      try{
+        const data=JSON.parse(e.data);
+        if(data.__end__){es.close();setConnected(false);return;}
+        setLines(prev=>[...prev,data]);
+        setTimeout(()=>{if(ref.current)ref.current.scrollTop=ref.current.scrollHeight;},20);
+      }catch{}
+    };
+    es.onerror=()=>{es.close();setConnected(false);};
+  };
+
+  // Auto-connect when scan starts
+  useEffect(()=>{
+    if(scanning||healthChecking){startStream();}
+    return()=>{if(esRef.current&&!scanning&&!healthChecking){esRef.current.close();setConnected(false);}};
+  },[scanning,healthChecking]);
+
+  return(
+    <div style={{display:"flex",flexDirection:"column",height:"100%"}}>
+      <div ref={ref} className="log-area" style={{flex:1,overflowY:"auto",padding:"10px 14px",maxHeight:320,minHeight:80}}>
+        {lines.length===0
+          ?<><div className="log-dim">Awaiting scan…</div><div className="log-dim">Click Run scan to start</div></>
+          :lines.map((l,i)=><div key={i} className={cls(l)}>{l||"\u00a0"}</div>)
+        }
+        {connected&&<span className="log-ok" style={{animation:"blink 1s infinite"}}>▌</span>}
+      </div>
+      {!scanning&&!healthChecking&&lines.length>0&&(
+        <div style={{padding:"5px 14px",borderTop:"1px solid var(--gray-100)"}}>
+          <button className="btn" onClick={startStream} style={{fontSize:10,padding:"3px 9px",width:"100%",justifyContent:"center"}}>↺ Reload last log</button>
+        </div>
+      )}
+    </div>
+  );
 }
 
 /* ── Main App ── */
@@ -686,7 +735,7 @@ function App(){
               {data.scanning&&<span style={{fontSize:10,color:"var(--green-600)",fontWeight:500,animation:"pulse 1.5s infinite"}}>● Live</span>}
               {data.healthChecking&&<span style={{fontSize:10,color:"var(--teal-600)",fontWeight:500,animation:"pulse 1.5s infinite"}}>❤ Checking</span>}
             </div>
-            <ScanLog lines={logLines} scanning={data.scanning||data.healthChecking}/>
+            <ScanLog scanning={data.scanning} healthChecking={data.healthChecking}/>
           </div>
 
           <div className="card" style={{padding:"12px 14px"}}>
