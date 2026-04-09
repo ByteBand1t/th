@@ -442,6 +442,7 @@ def benchmark_candidate(
     min_tps_large: float = 0.3,
     runs_large: int = 1,
     tool_call_test: bool = True,
+    priority_models: list = None,
     log_fn: Callable = print,
 ) -> ModelCandidate:
 
@@ -500,7 +501,15 @@ def benchmark_candidate(
     if avg_tps  < eff_min_tps:           reasons.append(f"TPS {avg_tps:.2f} < {eff_min_tps}")
     if len(last) < min_response_len:     reasons.append(f"response too short ({len(last)} chars)")
 
-    if reasons:
+    is_priority = any(
+        p.lower() in c.matched_target.lower()
+        for p in (priority_models or [])
+    )
+
+    if reasons and is_priority and last:
+        log_fn(f"    ⭐ PRIORITY MODEL — accepting despite: {'; '.join(reasons)}")
+        c.benchmark_ok = True
+    elif reasons:
         c.benchmark_ok    = False
         c.benchmark_error = "; ".join(reasons)
         log_fn(f"    ✗ FAIL: {c.benchmark_error}")
