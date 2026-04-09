@@ -1,14 +1,17 @@
+"""shodan_scanner.py — discovers Ollama hosts via Shodan API"""
 from __future__ import annotations
+
 import json
-import shodan
+import time
 from dataclasses import dataclass, field
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable
 
-CACHE_FILE  = Path("/data/known_hosts.json")
-HOST_TTL_DAYS = 7
-MIN_CREDITS   = 2
+import shodan
+
+CACHE_FILE    = Path("/data/shodan_cache.json")
+CACHE_TTL_SEC = 7 * 24 * 3600   # 7 days
 
 
 @dataclass
@@ -18,12 +21,17 @@ class OllamaHost:
     country: str = "??"
     org: str = "unknown"
     hostnames: list[str] = field(default_factory=list)
-    from_cache: bool = False
 
     @property
-    def base_url(self): return f"http://{self.ip}:{self.port}"
-    def __str__(self): return f"{self.ip}:{self.port} [{self.country}/{self.org}]"
+    def base_url(self) -> str:
+        return f"http://{self.ip}:{self.port}"
 
+    def __str__(self) -> str:
+        hn = self.hostnames[0] if self.hostnames else self.ip
+        return f"{hn}:{self.port} [{self.country}/{self.org}]"
+
+
+# ── Cache helpers ─────────────────────────────────────────────
 
 def _load_cache() -> dict:
     if CACHE_FILE.exists():
@@ -38,91 +46,123 @@ def _save_cache(cache: dict):
     CACHE_FILE.write_text(json.dumps(cache, indent=2))
 
 
-def discover_hosts(api_key, queries, max_results=50, exclude_orgs=None, log_fn=print) -> list[OllamaHost]:
-    api = shodan.Shodan(api_key)
-    exclude_orgs = [e.lower() for e in (exclude_orgs or [])]
+def _cache_key(ip: str, port: int) -> str:
+    return f"{ip}:{port}"
+
+
+# ── Main discovery ────────────────────────────────────────────
+
+def discover_hosts(
+    api_key: str,
+    queries,
+    max_results: int = 100,
+    exclude_orgs: list[str] = None,
+    exclude_ips: list[str] = None,
+    log_fn: Callable = print,
+) -> list[OllamaHost]:
+    """
+    Run multiple Shodan queries, deduplicate, cache results for 7 days.
+    Reads port directly from Shodan result — works for any port.
+    """
+    api         = shodan.Shodan(api_key)
+    cache       = _load_cache()
+    now         = time.time()
+    exclude_orgs = [o.lower() for o in (exclude_orgs or [])]
+    exclude_ips  = set(exclude_ips or [])
+
+    # Normalise queries to list
     if isinstance(queries, str):
         queries = [queries]
 
-    cache = _load_cache()
-    now   = datetime.now(timezone.utc)
-    ttl   = timedelta(days=HOST_TTL_DAYS)
+    seen:  set[str]         = set()
+    hosts: list[OllamaHost] = []
 
-    fresh_hosts: list[OllamaHost] = []
-    stale_keys:  set[str]         = set()
-
+    # ── Inject cached hosts first ────────────────────────────
+    fresh, stale = 0, 0
     for key, entry in cache.items():
-        last_seen = datetime.fromisoformat(entry["last_seen"])
-        host = OllamaHost(
-            ip=entry["ip"], port=entry["port"],
-            country=entry.get("country", "??"),
-            org=entry.get("org", "unknown"),
-            from_cache=True,
-        )
-        if now - last_seen < ttl:
-            fresh_hosts.append(host)
+        age = now - entry.get("ts", 0)
+        if age < CACHE_TTL_SEC:
+            ip   = entry["ip"]
+            port = entry["port"]
+            if ip in exclude_ips:
+                continue
+            if any(ex in entry.get("org", "").lower() for ex in exclude_orgs):
+                continue
+            if key not in seen:
+                seen.add(key)
+                hosts.append(OllamaHost(
+                    ip=ip, port=port,
+                    country=entry.get("country", "??"),
+                    org=entry.get("org", "unknown"),
+                    hostnames=entry.get("hostnames", []),
+                ))
+                fresh += 1
         else:
-            stale_keys.add(key)
+            stale += 1
 
-    log_fn(f"  Cache: {len(fresh_hosts)} fresh (skip Shodan), {len(stale_keys)} stale (re-check)")
+    log_fn(f"  Cache: {fresh} fresh (skip Shodan), {stale} stale (re-check)")
 
+    # ── Shodan credits remaining ──────────────────────────────
     try:
-        info    = api.info()
-        credits = info.get("query_credits", 0)
-        log_fn(f"  Shodan credits remaining: {credits}")
-        if credits < MIN_CREDITS:
-            log_fn(f"  ⚠ Only {credits} credits left — using cache only")
-            return fresh_hosts
-    except Exception as e:
-        log_fn(f"  Could not check credits: {e}")
+        info = api.info()
+        log_fn(f"  Shodan credits remaining: {info.get('unlocked_left', '?')}")
+    except Exception:
+        pass
 
-    seen = {f"{h.ip}:{h.port}" for h in fresh_hosts}
-    new_hosts: list[OllamaHost] = []
+    new_entries = {}
 
     for query in queries:
         log_fn(f"  Query: {query}")
         try:
             results = api.search(query, limit=max_results)
-            found   = 0
-            for m in results.get("matches", []):
-                ip   = m.get("ip_str", "")
-                port = m.get("port", 11434)
-                org  = m.get("org", "unknown")
-                key  = f"{ip}:{port}"
+            total   = results.get("total", 0)
+            added   = 0
 
-                if key in seen:
-                    if key in stale_keys:
-                        cache[key]["last_seen"] = now.isoformat()
-                        stale_keys.discard(key)
+            for match in results.get("matches", []):
+                ip   = match.get("ip_str", "")
+                port = match.get("port", 11434)
+                org  = match.get("org", "unknown")
+                key  = _cache_key(ip, port)
+
+                # Skip excluded
+                if ip in exclude_ips:
                     continue
-
                 if any(ex in org.lower() for ex in exclude_orgs):
-                    log_fn(f"    ⊘ Skip {ip} ({org}) — excluded")
+                    log_fn(f"  ⊘ Skip {ip} ({org}) — excluded")
+                    continue
+                if key in seen:
                     continue
 
                 seen.add(key)
+                added += 1
                 host = OllamaHost(
                     ip=ip, port=port,
-                    country=m.get("location", {}).get("country_code", "??"),
+                    country=match.get("location", {}).get("country_code", "??"),
                     org=org,
-                    hostnames=m.get("hostnames", []),
-                    from_cache=False,
+                    hostnames=match.get("hostnames", []),
                 )
-                new_hosts.append(host)
-                cache[key] = {
-                    "ip": ip, "port": port, "org": org,
-                    "country": m.get("location", {}).get("country_code", "??"),
-                    "last_seen": now.isoformat(),
-                    "first_seen": cache.get(key, {}).get("first_seen", now.isoformat()),
+                hosts.append(host)
+                # Store in cache
+                new_entries[key] = {
+                    "ip":        ip,
+                    "port":      port,
+                    "country":   host.country,
+                    "org":       org,
+                    "hostnames": host.hostnames,
+                    "ts":        now,
                 }
-                found += 1
 
-            log_fn(f"    → {results.get('total', 0)} total, {found} new hosts")
+            log_fn(f"    → {total} total, {added} new hosts")
 
         except shodan.APIError as e:
-            log_fn(f"    Shodan error: {e}")
+            log_fn(f"    ⊘ Shodan error for '{query}': {e}")
+        except Exception as e:
+            log_fn(f"    ⊘ Error for '{query}': {e}")
 
-    _save_cache(cache)
-    all_hosts = fresh_hosts + new_hosts
-    log_fn(f"  Total: {len(all_hosts)} hosts ({len(fresh_hosts)} cache, {len(new_hosts)} new)")
-    return all_hosts
+    # Update cache with new entries
+    if new_entries:
+        cache.update(new_entries)
+        _save_cache(cache)
+
+    log_fn(f"  Total: {len(hosts)} hosts ({fresh} cache, {len(hosts)-fresh} new)")
+    return hosts
