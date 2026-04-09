@@ -21,6 +21,7 @@ shodan:
     - 'port:11434 org:ANL'
     - 'port:11434 org:NII'
     - 'http.title:Ollama'
+    - 'product:"Ollama"'
     - 'port:11434'
   max_results: 100
   exclude_orgs:
