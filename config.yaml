@@ -106,7 +106,7 @@ target_models:
 
 benchmark:
   enabled: true
-  prompt: "Hallo, wie geht es dir?"
+  prompt: "Write a Python function that takes a list of numbers and returns the mean, median, and standard deviation. Include type hints and a docstring."
   max_ttft_seconds: 15.0
   min_tokens_per_second: 3.0
   min_response_length: 20
@@ -116,7 +116,7 @@ benchmark:
 
 benchmark_large:
   enabled: true
-  prompt: "Hallo, wie geht es dir?"
+  prompt: "Refactor this Python class to use async/await and add proper error handling: class DataFetcher: def fetch(self, url): import requests; return requests.get(url).json()"
   max_ttft_seconds: 120.0
   min_tokens_per_second: 0.3
   min_response_length: 10
