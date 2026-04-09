@@ -14,6 +14,12 @@ shodan:
     - 'port:11434 org:CNRS'
     - 'port:11434 org:MIT'
     - 'port:11434 org:ETH'
+    - 'port:11434 org:Helmholtz'
+    - 'port:11434 org:Max-Planck'
+    - 'port:11434 org:Fraunhofer'
+    - 'port:11434 org:ORNL'
+    - 'port:11434 org:ANL'
+    - 'port:11434 org:NII'
     - 'http.title:Ollama'
     - 'port:11434'
   max_results: 100
