@@ -8,7 +8,7 @@ from typing import List
 
 from fastapi import FastAPI, BackgroundTasks, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import httpx
@@ -19,6 +19,7 @@ HEALTH_FILE   = DATA_DIR / "health.json"
 LOCK_FILE     = DATA_DIR / ".scan_running"
 HLOCK_FILE    = DATA_DIR / ".health_running"
 LOG_FILE      = DATA_DIR / "scan.log"
+LIVE_LOG_FILE = DATA_DIR / "scan_live.log"
 HLOG_FILE     = DATA_DIR / "health.log"
 SCHEDULE_FILE = DATA_DIR / "schedule.json"
 USER_MODELS   = DATA_DIR / "user_models.json"
@@ -83,26 +84,55 @@ def save_user_models(models: list):
 
 def _run_scan():
     LOCK_FILE.touch()
+    # Clear live log
+    LIVE_LOG_FILE.write_text("")
     try:
-        result = subprocess.run(
-            [sys.executable, str(SCANNER)],
-            capture_output=True, text=True, cwd="/app/scanner",
+        proc = subprocess.Popen(
+            [sys.executable, "-u", str(SCANNER)],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            cwd="/app/scanner",
             env={**os.environ, "PYTHONUNBUFFERED": "1"},
         )
-        LOG_FILE.write_text(result.stdout + "\n" + result.stderr)
+        full_log = []
+        with open(LIVE_LOG_FILE, "w", buffering=1) as live_f:
+            for line in proc.stdout:
+                line = line.rstrip("\n")
+                live_f.write(line + "\n")
+                live_f.flush()
+                full_log.append(line)
+        proc.wait()
+        LOG_FILE.write_text("\n".join(full_log))
+    except Exception as e:
+        LIVE_LOG_FILE.write_text(f"Scanner error: {e}")
     finally:
         LOCK_FILE.unlink(missing_ok=True)
 
 
 def _run_health_check():
     HLOCK_FILE.touch()
+    LIVE_LOG_FILE.write_text("")
     try:
-        result = subprocess.run(
-            [sys.executable, str(HEALTH_CHK)],
-            capture_output=True, text=True, cwd="/app/scanner",
+        proc = subprocess.Popen(
+            [sys.executable, "-u", str(HEALTH_CHK)],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            cwd="/app/scanner",
             env={**os.environ, "PYTHONUNBUFFERED": "1"},
         )
-        HLOG_FILE.write_text(result.stdout + "\n" + result.stderr)
+        full_log = []
+        with open(LIVE_LOG_FILE, "w", buffering=1) as live_f:
+            for line in proc.stdout:
+                line = line.rstrip("\n")
+                live_f.write(line + "\n")
+                live_f.flush()
+                full_log.append(line)
+        proc.wait()
+        HLOG_FILE.write_text("\n".join(full_log))
+    except Exception as e:
+        LIVE_LOG_FILE.write_text(f"Health check error: {e}")
     finally:
         HLOCK_FILE.unlink(missing_ok=True)
 
@@ -197,6 +227,60 @@ def get_log():
 @app.get("/api/health-log")
 def get_health_log():
     return {"log": HLOG_FILE.read_text() if HLOG_FILE.exists() else ""}
+
+
+# ── Live log SSE ──────────────────────────────────────────────
+
+@app.get("/api/log/stream")
+def stream_log():
+    """
+    Server-Sent Events endpoint.
+    Streams scan_live.log line by line as it is written.
+    Sends a heartbeat every 2s when idle so the connection stays alive.
+    """
+    def event_generator():
+        pos = 0
+        last_active = LOCK_FILE.exists() or HLOCK_FILE.exists()
+
+        # If a scan is not running, stream the last completed log first
+        if not last_active and LOG_FILE.exists():
+            for line in LOG_FILE.read_text().splitlines():
+                yield f"data: {json.dumps(line)}\n\n"
+            yield "data: {\"__end__\": true}\n\n"
+            return
+
+        while True:
+            active = LOCK_FILE.exists() or HLOCK_FILE.exists()
+
+            if LIVE_LOG_FILE.exists():
+                try:
+                    content = LIVE_LOG_FILE.read_text()
+                    lines   = content.splitlines()
+                    if pos < len(lines):
+                        for line in lines[pos:]:
+                            yield f"data: {json.dumps(line)}\n\n"
+                        pos = len(lines)
+                except Exception:
+                    pass
+
+            # Scan finished — send end marker and stop
+            if last_active and not active:
+                yield "data: {\"__end__\": true}\n\n"
+                break
+
+            last_active = active
+            # Heartbeat to keep connection alive
+            yield ": heartbeat\n\n"
+            time.sleep(0.5)
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control":    "no-cache",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 # ── Schedule API ──────────────────────────────────────────────
@@ -331,7 +415,8 @@ def benchmark_single(req: BenchmarkRequest):
                 t0 = t.perf_counter(); ttft = None; tokens = 0; text = ""
                 with httpx.stream(
                     "POST", f"{base_url}/api/generate",
-                    json={"model": model, "prompt": "Hallo, wie geht es dir?",
+                    json={"model": model,
+                          "prompt": "Write a Python function that takes a list of numbers and returns the mean, median, and standard deviation. Include type hints and a docstring.",
                           "stream": True, "options": {"num_predict": 80}},
                     timeout=90.0,
                 ) as resp:
@@ -393,6 +478,14 @@ def _do_add(req: AddRequest):
         response_text     = req.response
         benchmark_ok      = True
         benchmark_error   = None
+        context_window    = 32768
+        quantization      = "unknown"
+        quant_score       = 5
+        has_vision        = False
+        has_tools         = False
+        parameter_size    = "?"
+        availability      = 1.0
+        is_large          = False
 
         @property
         def litellm_model_string(self):
@@ -409,7 +502,7 @@ def _do_add(req: AddRequest):
             return f"{base}-{m.group(1)}b-pool" if m else f"{base}-pool"
 
     c = FC()
-    c.__class__.host = host  # fix: assign host after class definition
+    c.__class__.host = host
 
     mgr.add_model(c)
 
