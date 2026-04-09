@@ -93,6 +93,10 @@ target_models:
     min_size_b: 0
   - name: glm-4
     min_size_b: 0
+  - name: glm-5
+    min_size_b: 0
+  - name: minimax-m2
+    min_size_b: 0
 
 benchmark:
   enabled: true
@@ -116,3 +120,12 @@ benchmark_large:
 large_model_threshold_b: 100
 
 litellm_model_tag: "ollama-scout"
+
+# These models are so rare/powerful that we accept any response regardless of TPS/TTFT
+# as long as the model actually responded with something
+priority_models:
+  - minimax-m2
+  - glm-5
+  - glm-4
+  - kimi-k2
+  - qwen3-coder-next
