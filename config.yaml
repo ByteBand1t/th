@@ -126,6 +126,16 @@ benchmark_large:
 # Models >= this size (B) use benchmark_large profile
 large_model_threshold_b: 100
 
+# Honeypot detection — flags fake servers that report impossible benchmarks
+honeypot_detection:
+  enabled: true
+  # Models >= this size (B) showing TPS above this are honeypots
+  # A real 30B model can do ~15-20 TPS max on high-end hardware
+  max_tps_large: 25.0
+  large_threshold_b: 14.0
+  # Real large models report context >= this — 4k context for a 70B is a red flag
+  min_context_large: 8192
+
 litellm_model_tag: "ollama-scout"
 
 # These models are so rare/powerful that we accept any response regardless of TPS/TTFT
