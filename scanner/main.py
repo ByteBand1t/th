@@ -84,7 +84,7 @@ def main():
     exclude_patterns = cfg.get("exclude_model_patterns", [])
     large_threshold  = float(cfg.get("large_model_threshold_b", 100))
 
-    candidates = discover_candidates(
+    candidates, host_other_models = discover_candidates(
         hosts,
         targets,
         exclude_model_patterns=exclude_patterns,
@@ -92,6 +92,8 @@ def main():
         log_fn=L,
     )
     L(f"\n{len(candidates)} matching model(s) found.")
+    if host_other_models:
+        L(f"  {len(host_other_models)} host(s) have additional non-scanned models")
 
     if not candidates:
         results["status"] = "done"
@@ -147,6 +149,7 @@ def main():
     # ── Save results ─────────────────────────────────────────
     results["status"] = "done"
     results["log"]    = log
+    results["hostOtherModels"] = host_other_models
     results["candidates"] = [
         {
             "id":            i + 1,
@@ -157,6 +160,8 @@ def main():
             "model":         c.model_name,
             "matched":       c.matched_target,
             "isLarge":       c.is_large,
+            "isHoneypot":    c.is_honeypot_flag,
+            "honeypotReason": c.honeypot_reason,
             # Metadata
             "contextWindow": c.context_window,
             "quantization":  c.quantization,
@@ -170,7 +175,7 @@ def main():
             "ttft":          round(c.ttft, 3) if c.ttft else None,
             "tps":           round(c.tokens_per_second, 1) if c.tokens_per_second else None,
             "response":      c.response_text,
-            "status":        "added" if c.benchmark_ok else "failed",
+            "status":        "honeypot" if c.is_honeypot_flag else ("added" if c.benchmark_ok else "failed"),
             "failReason":    c.benchmark_error if not c.benchmark_ok else None,
             "litellmName":   c.litellm_model_name if c.benchmark_ok else None,
         }
