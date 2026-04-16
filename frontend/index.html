@@ -152,26 +152,59 @@ function FeatureBadges({c}){
 
 /* ── Status pill ── */
 function StatusPill({status}){
-  const m={added:"pill-green",failed:"pill-red",pending:"pill-amber",slow:"pill-amber",dead:"pill-gray"}[status]||"pill-gray";
-  const l={added:"Added",failed:"Failed",pending:"Testing…",slow:"Slow",dead:"Dead"}[status]||status;
+  const m={added:"pill-green",failed:"pill-red",pending:"pill-amber",slow:"pill-amber",dead:"pill-gray",honeypot:"pill-red"}[status]||"pill-gray";
+  const l={added:"Added",failed:"Failed",pending:"Testing…",slow:"Slow",dead:"Dead",honeypot:"🍯 Honeypot"}[status]||status;
   return <span className={`pill ${m}`}>{l}</span>;
 }
 
 /* ── Health dot ── */
 function HealthDot({status}){
-  const c={added:"#22c55e",slow:"#f59e0b",dead:"#ef4444"}[status]||"#d1d5de";
+  const c={added:"#22c55e",slow:"#f59e0b",dead:"#ef4444",honeypot:"#f97316"}[status]||"#d1d5de";
   return <span style={{width:7,height:7,borderRadius:"50%",background:c,display:"inline-block",flexShrink:0}} title={status}/>;
 }
 
 /* ── Detail modal ── */
-function DetailModal({c,onClose,onChat,onAddAnyway}){
+function DetailModal({c,data,onClose,onChat,onAddAnyway}){
   const[adding,setAdding]=useState(false);
+  const[benchRes,setBenchRes]=useState(null);
+  const[benching,setBenching]=useState(false);
+  const[addingModel,setAddingModel]=useState(null);
+
+  // Find other models on this host
+  const hostKey=`${c.ip}:${c.port}`;
+  const hostOther=data?.hostOtherModels?.[hostKey];
+  const otherModels=hostOther?.models||[];
+
   useEffect(()=>{const h=e=>e.key==="Escape"&&onClose();document.addEventListener("keydown",h);return()=>document.removeEventListener("keydown",h);},[]);
+
   const addAnyway=async()=>{
     setAdding(true);
     await fetch("/api/add-anyway",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ip:c.ip,port:c.port,model:c.model,ttft:c.ttft||0,tps:c.tps||0,response:c.response||"",org:c.org||"unknown",country:c.country||"??"})});
     setAdding(false);onAddAnyway();onClose();
   };
+
+  const benchmarkOther=async(model)=>{
+    setBenching(model);
+    try{
+      const r=await fetch("/api/benchmark-single",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ip:c.ip,port:c.port,models:[model]})});
+      const d=await r.json();
+      setBenchRes(prev=>({...(prev||{}), [model]:d.results[0]}));
+    }catch(e){setBenchRes(prev=>({...(prev||{}),[model]:{ok:false,error:String(e)}}));}
+    setBenching(null);
+  };
+
+  const addOther=async(model,res)=>{
+    setAddingModel(model);
+    await fetch("/api/add-manual",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ip:c.ip,port:c.port,model,ttft:res.ttft||0,tps:res.tps||0,response:res.response||"",org:c.org||"unknown",country:c.country||"??"})});
+    setAddingModel(null);onAddAnyway();
+  };
+
+  const addOtherAnyway=async(model)=>{
+    setAddingModel(model);
+    await fetch("/api/add-anyway",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ip:c.ip,port:c.port,model,ttft:0,tps:0,response:"",org:c.org||"unknown",country:c.country||"??"})});
+    setAddingModel(null);onAddAnyway();
+  };
+
   return(
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-panel" onClick={e=>e.stopPropagation()}>
@@ -183,14 +216,25 @@ function DetailModal({c,onClose,onChat,onAddAnyway}){
               <FeatureBadges c={c}/>
             </div>
             <div style={{display:"flex",gap:6}}>
-              <button className="btn btn-primary" onClick={()=>{onClose();onChat(c);}} style={{fontSize:12}}>💬 Chat</button>
+              {c.status!=="honeypot"&&<button className="btn btn-primary" onClick={()=>{onClose();onChat(c);}} style={{fontSize:12}}>💬 Chat</button>}
               <button className="btn" onClick={onClose} style={{fontSize:12,padding:"4px 10px"}}>Close</button>
             </div>
           </div>
         </div>
-        <div style={{padding:"18px 22px"}}>
+        <div style={{padding:"18px 22px",overflowY:"auto",maxHeight:"75vh"}}>
+
+          {/* Honeypot warning */}
+          {c.isHoneypot&&<div style={{background:"#fff7ed",border:"1px solid #fed7aa",borderRadius:"var(--radius-md)",padding:"10px 14px",marginBottom:14,display:"flex",gap:10,alignItems:"flex-start"}}>
+            <span style={{fontSize:20}}>🍯</span>
+            <div>
+              <div style={{fontWeight:600,color:"#c2410c",fontSize:13}}>Honeypot server detected</div>
+              <div style={{fontSize:11,color:"#9a3412",marginTop:3}}>{c.honeypotReason||c.failReason}</div>
+              <div style={{fontSize:11,color:"#9a3412",marginTop:4}}>This server returns fake benchmarks. Do not use in production.</div>
+            </div>
+          </div>}
+
           {/* Performance metrics */}
-          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:14}}>
+          {!c.isHoneypot&&<div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:14}}>
             {[["TTFT",c.ttft!=null?`${c.ttft.toFixed(2)}s`:"—",c.ttft<=15?"var(--green-600)":"var(--red-600)"],
               ["TPS",c.tps!=null?c.tps.toFixed(1):"—",c.tps>=3?"var(--green-600)":"var(--red-600)"],
               ["Pattern",c.matched||"—","var(--blue-600)"]].map(([l,v,col])=>(
@@ -199,10 +243,10 @@ function DetailModal({c,onClose,onChat,onAddAnyway}){
                 <div style={{fontSize:17,fontWeight:600,color:col,marginTop:3}}>{v}</div>
               </div>
             ))}
-          </div>
+          </div>}
 
           {/* Model metadata */}
-          <div style={{background:"var(--gray-50)",borderRadius:"var(--radius-md)",padding:"12px 14px",marginBottom:14}}>
+          {!c.isHoneypot&&<div style={{background:"var(--gray-50)",borderRadius:"var(--radius-md)",padding:"12px 14px",marginBottom:14}}>
             <div className="section-label" style={{marginBottom:10}}>Model metadata</div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
               <div>
@@ -227,24 +271,64 @@ function DetailModal({c,onClose,onChat,onAddAnyway}){
                 </div>
               </div>
             </div>
-          </div>
+          </div>}
 
-          {c.response&&<div style={{background:"var(--gray-50)",borderRadius:"var(--radius-md)",padding:12,marginBottom:12}}>
+          {c.response&&!c.isHoneypot&&<div style={{background:"var(--gray-50)",borderRadius:"var(--radius-md)",padding:12,marginBottom:12}}>
             <div className="section-label">Benchmark response</div>
             <div style={{fontSize:12,color:"var(--gray-700)",marginTop:5,fontStyle:"italic",lineHeight:1.6}}>"{c.response}"</div>
           </div>}
-          {(c.failReason||c.deadReason||c.slowReason)&&<div style={{background:"var(--red-50)",border:"1px solid var(--red-100)",borderRadius:"var(--radius-md)",padding:"9px 12px",marginBottom:10}}>
+
+          {(c.failReason||c.deadReason||c.slowReason)&&!c.isHoneypot&&<div style={{background:"var(--red-50)",border:"1px solid var(--red-100)",borderRadius:"var(--radius-md)",padding:"9px 12px",marginBottom:10}}>
             <div style={{color:"var(--red-700)",fontSize:12}}>⚠ {c.failReason||c.deadReason||c.slowReason}</div>
           </div>}
-          {(c.status==="failed"||c.status==="slow"||c.status==="dead")&&(
+
+          {(c.status==="failed"||c.status==="slow"||c.status==="dead")&&!c.isHoneypot&&(
             <button className="btn btn-amber" onClick={addAnyway} disabled={adding} style={{width:"100%",justifyContent:"center",marginBottom:10}}>
               {adding?<span style={{animation:"pulse 1s infinite"}}>Adding…</span>:"Add anyway — ignore benchmark"}
             </button>
           )}
-          {c.status==="added"&&c.litellmName&&<div style={{background:"var(--blue-50)",border:"1px solid var(--blue-100)",borderRadius:"var(--radius-md)",padding:"9px 12px"}}>
+
+          {c.status==="added"&&c.litellmName&&<div style={{background:"var(--blue-50)",border:"1px solid var(--blue-100)",borderRadius:"var(--radius-md)",padding:"9px 12px",marginBottom:12}}>
             <div className="section-label">LiteLLM model string</div>
             <code style={{fontSize:11,color:"var(--blue-700)",marginTop:3,display:"block"}}>ollama/{c.model}@{c.ip.replace(/\./g,"-")}</code>
           </div>}
+
+          {/* ── Other models on this server ── */}
+          {otherModels.length>0&&<div style={{borderTop:"1px solid var(--gray-200)",paddingTop:14,marginTop:4}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+              <div>
+                <div style={{fontWeight:600,fontSize:13}}>Other models on this server</div>
+                <div style={{fontSize:11,color:"var(--gray-500)",marginTop:1}}>{otherModels.length} model{otherModels.length!==1?"s":""} not in your scan targets</div>
+              </div>
+            </div>
+            <div className="card" style={{overflow:"hidden"}}>
+              {otherModels.map(model=>{
+                const res=benchRes?.[model];
+                return(
+                  <div key={model} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 12px",borderBottom:"1px solid var(--gray-100)"}}>
+                    <div style={{flex:1}}>
+                      <div style={{fontSize:12,fontWeight:500}}>{model}</div>
+                      {res&&<div style={{fontSize:10,marginTop:2,color:res.ok?"var(--green-600)":"var(--red-600)"}}>
+                        {res.ok?`✓ TTFT ${res.ttft?.toFixed(2)}s · ${res.tps?.toFixed(1)} TPS`:`✗ ${res.error||"Failed"}`}
+                      </div>}
+                    </div>
+                    <div style={{display:"flex",gap:5}}>
+                      {!res&&<button className="btn" onClick={()=>benchmarkOther(model)} disabled={benching===model} style={{fontSize:10,padding:"3px 9px"}}>
+                        {benching===model?<span style={{animation:"pulse 1s infinite"}}>Testing…</span>:"▶ Test"}
+                      </button>}
+                      {res?.ok&&<button className="btn btn-success" onClick={()=>addOther(model,res)} disabled={addingModel===model} style={{fontSize:10,padding:"3px 9px"}}>
+                        {addingModel===model?"Adding…":"+ Add"}
+                      </button>}
+                      {res&&!res.ok&&<button className="btn btn-amber" onClick={()=>addOtherAnyway(model)} disabled={addingModel===model} style={{fontSize:10,padding:"3px 9px"}}>
+                        {addingModel===model?"Adding…":"Add anyway"}
+                      </button>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>}
+
         </div>
       </div>
     </div>
@@ -600,6 +684,7 @@ function App(){
     if(filter==="all")return true;
     if(filter==="added")return c.status==="added"||c.status==="slow";
     if(filter==="failed")return c.status==="failed"||c.status==="dead";
+    if(filter==="honeypot")return c.status==="honeypot";
     return c.status===filter;
   }).sort((a,b)=>{
     if(sort==="tps")    return(b.tps||0)-(a.tps||0);
@@ -614,6 +699,7 @@ function App(){
   const added  =(data.candidates||[]).filter(c=>c.status==="added").length;
   const slow   =(data.candidates||[]).filter(c=>c.status==="slow").length;
   const failed =(data.candidates||[]).filter(c=>c.status==="failed"||c.status==="dead").length;
+  const honeypots=(data.candidates||[]).filter(c=>c.status==="honeypot").length;
   const withTools=(data.candidates||[]).filter(c=>c.hasTools||c.toolCallOk).length;
   const health =data.health||{};
   const sched  =data.schedule||{};
@@ -664,6 +750,7 @@ function App(){
           ["Candidates",       (data.candidates||[]).length,    "amber"],
           ["Active",           added+(slow||0),                 "green"],
           ["Tool-callable",    withTools,                       "teal"],
+          ["🍯 Honeypots",      honeypots,                       "red"],
           ["Last check",       health.lastCheck?`${health.alive||0}✓ ${health.slow||0}⚠ ${health.dead||0}✗`:"—","purple"],
         ].map(([label,val,color])=>{
           const colors={blue:"#2563eb",green:"#16a34a",red:"#dc2626",amber:"#d97706",teal:"#0d9488",purple:"#9333ea"};
@@ -683,8 +770,8 @@ function App(){
         <div className="card" style={{overflow:"hidden"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 13px",borderBottom:"1px solid var(--gray-100)"}}>
             <div style={{display:"flex",gap:3}}>
-              {["all","added","failed"].map(f=>(
-                <button key={f} onClick={()=>setFilter(f)} style={{padding:"3px 10px",borderRadius:99,border:"none",cursor:"pointer",fontSize:11,fontWeight:500,fontFamily:"inherit",background:filter===f?"var(--gray-900)":"transparent",color:filter===f?"#fff":"var(--gray-500)",transition:"all .15s"}}>{f.charAt(0).toUpperCase()+f.slice(1)}</button>
+              {["all","added","failed","honeypot"].map(f=>(
+                <button key={f} onClick={()=>setFilter(f)} style={{padding:"3px 10px",borderRadius:99,border:"none",cursor:"pointer",fontSize:11,fontWeight:500,fontFamily:"inherit",background:filter===f?"var(--gray-900)":"transparent",color:filter===f?"#fff":"var(--gray-500)",transition:"all .15s"}}>{f==="honeypot"?"🍯 Honeypot":f.charAt(0).toUpperCase()+f.slice(1)}</button>
               ))}
             </div>
             <div style={{display:"flex",gap:3,alignItems:"center"}}>
@@ -709,6 +796,7 @@ function App(){
                   <div style={{display:"flex",alignItems:"center",gap:5}}>
                     <HealthDot status={c.status}/>
                     <span style={{fontWeight:500,fontSize:12}}>{c.model}</span>
+                    {c.isHoneypot&&<span title="Honeypot detected" style={{fontSize:10}}>🍯</span>}
                     {c.hasVision&&<span style={{fontSize:10}}>👁</span>}
                     {(c.hasTools||c.toolCallOk)&&<span style={{fontSize:10}}>🔧</span>}
                     {c.isLarge&&<span className="pill pill-amber" style={{fontSize:9}}>large</span>}
@@ -771,7 +859,7 @@ function App(){
 
       <div style={{marginTop:12,fontSize:10,color:"var(--gray-300)",textAlign:"center"}}>OllamaScout v2.0 · ConnectAsset · Click row for details · Auto-refresh 4s</div>
 
-      {selected&&<DetailModal c={selected} onClose={()=>setSelected(null)} onChat={c=>{setSelected(null);setChatTarget(c);}} onAddAnyway={fetchData}/>}
+      {selected&&<DetailModal c={selected} data={data} onClose={()=>setSelected(null)} onChat={c=>{setSelected(null);setChatTarget(c);}} onAddAnyway={fetchData}/>}
       {chatTarget&&<ChatModal c={chatTarget} onClose={()=>setChatTarget(null)} onAddAnyway={fetchData}/>}
       {showManual&&<ManualModal onClose={()=>setShowManual(false)} onAdded={fetchData}/>}
       {showSettings&&<SettingsModal onClose={()=>setShowSettings(false)} onSaved={fetchData}/>}
