@@ -127,6 +127,48 @@ def _is_cloud_model(model_name: str, exclude_patterns: list[str]) -> bool:
     return False
 
 
+# ── Honeypot detection ────────────────────────────────────────────
+
+def is_honeypot(
+    model_name: str,
+    tps: float,
+    context_window: int,
+    max_tps_large: float = 25.0,
+    min_context_large: int = 8192,
+    large_threshold_b: float = 14.0,
+) -> tuple[bool, str]:
+    """
+    Detect fake/honeypot Ollama servers.
+
+    Signs:
+    1. Impossibly fast TPS for large models
+       e.g. qwen3:235b at 46 TPS requires ~3TB/s memory bandwidth — physically impossible
+       Rule: model >= 14B AND TPS > 25 → honeypot
+    2. Tiny context window for large models
+       Real large models report 32k-256k context, honeypots report 4k
+    3. All models on host respond at identical speed (checked in discover_candidates)
+
+    Returns (is_honeypot: bool, reason: str)
+    """
+    size_b = _extract_size_b(model_name)
+
+    if size_b >= large_threshold_b and tps > max_tps_large:
+        reason = (
+            f"Impossibly fast: {tps:.1f} TPS for {size_b:.0f}B model "
+            f"(max realistic ≈{max_tps_large} TPS)"
+        )
+        return True, reason
+
+    if size_b >= large_threshold_b and 0 < context_window <= min_context_large:
+        reason = (
+            f"Suspicious context: {context_window} tokens for {size_b:.0f}B model "
+            f"(real models report ≥{min_context_large})"
+        )
+        return True, reason
+
+    return False, ""
+
+
 # ── /api/show metadata ────────────────────────────────────────────
 
 def _get_model_info(host: OllamaHost, model_name: str) -> dict:
@@ -219,6 +261,9 @@ class ModelCandidate:
     benchmark_ok: Optional[bool] = None
     benchmark_error: Optional[str] = None
     tool_call_ok: Optional[bool] = None
+    # Honeypot detection
+    is_honeypot_flag: bool = False
+    honeypot_reason: str = ""
     # Availability
     availability: float = 1.0
 
@@ -286,7 +331,11 @@ def discover_candidates(
     exclude_model_patterns: list[str] = None,
     large_threshold_b: float = 100.0,
     log_fn: Callable = print,
-) -> list[ModelCandidate]:
+) -> tuple[list[ModelCandidate], dict]:
+    """
+    Returns (candidates, host_other_models)
+    host_other_models: {ip:port -> [all model names on this host not in candidates]}
+    """
     targets = []
     for t in target_models:
         if isinstance(t, str):
@@ -294,9 +343,10 @@ def discover_candidates(
         else:
             targets.append({"name": t["name"], "min_size_b": float(t.get("min_size_b", 0))})
 
-    exclude_patterns = exclude_model_patterns or []
-    blocked          = _load_blocklist()
-    candidates       = []
+    exclude_patterns  = exclude_model_patterns or []
+    blocked           = _load_blocklist()
+    candidates        = []
+    host_other_models = {}  # ip:port → list of non-matched model names
 
     for host in hosts:
         key = f"{host.ip}:{host.port}"
@@ -309,7 +359,9 @@ def discover_candidates(
             log_fn(f"  ✗ {host} — unreachable or blocked")
             continue
 
-        matched = 0
+        matched_names = set()
+        matched       = 0
+
         for m in tags:
             name = m.get("name", "")
 
@@ -347,9 +399,10 @@ def discover_candidates(
                         availability=avail,
                     )
                     candidates.append(c)
+                    matched_names.add(name)
 
                     badges = []
-                    if is_large:      badges.append("LARGE")
+                    if is_large:           badges.append("LARGE")
                     if info["has_vision"]: badges.append("👁 vision")
                     if info["has_tools"]:  badges.append("🔧 tools")
                     badge_str = f" [{', '.join(badges)}]" if badges else ""
@@ -362,15 +415,27 @@ def discover_candidates(
                     matched += 1
                     break
 
+        # Collect non-matched models for this host
+        all_names = [m.get("name", "") for m in tags if m.get("name")]
+        other     = [n for n in all_names if n not in matched_names
+                     and not _is_cloud_model(n, exclude_patterns)]
+        if other:
+            host_other_models[key] = {
+                "ip":       host.ip,
+                "port":     host.port,
+                "country":  host.country,
+                "org":      host.org,
+                "models":   other,
+            }
+
         if not matched:
-            avail = [m.get("name", "") for m in tags]
-            log_fn(f"  – {host} — no targets (has: {', '.join(avail[:3])})")
+            log_fn(f"  – {host} — no targets (has: {', '.join(all_names[:3])})")
 
     normal = sum(1 for c in candidates if not c.is_large)
     large  = sum(1 for c in candidates if c.is_large)
     log_fn(f"\n  {len(candidates)} candidates: {normal} normal, {large} large (≥{large_threshold_b}B)")
     log_fn(f"  Blocklist: {len(blocked)} hosts skipped")
-    return candidates
+    return candidates, host_other_models
 
 
 # ── Benchmark ─────────────────────────────────────────────────────
@@ -495,6 +560,17 @@ def benchmark_candidate(
     avg_ttft = sum(ttfts) / len(ttfts)
     avg_tps  = sum(tpss)  / len(tpss)
     c.ttft, c.tokens_per_second, c.response_text = avg_ttft, avg_tps, last
+
+    # ── Honeypot detection ────────────────────────────────────────
+    hp, hp_reason = is_honeypot(c.model_name, avg_tps, c.context_window)
+    if hp:
+        c.is_honeypot_flag = True
+        c.honeypot_reason  = hp_reason
+        c.benchmark_ok     = False
+        c.benchmark_error  = f"🍯 Honeypot: {hp_reason}"
+        log_fn(f"    🍯 HONEYPOT DETECTED: {hp_reason}")
+        record_availability(c.model_key, False)
+        return c
 
     reasons = []
     if avg_ttft > eff_max_ttft:          reasons.append(f"TTFT {avg_ttft:.1f}s > {eff_max_ttft}s")
